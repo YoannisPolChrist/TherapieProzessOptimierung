@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, ActivityIndicator, Linking, RefreshControl, Platform, Modal, Pressable, StyleSheet } from 'react-native';
-import { ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useMemo, useState, useCallback } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -90,7 +90,7 @@ export default function ResourcesScreen() {
     const previewUrl = normalizeResourceUrl(selectedResource?.url);
     const modalContentWidth = isDesktop ? 1120 : isTablet ? 920 : undefined;
     const isWeb = Platform.OS === 'web';
-    const contentWrapperStyle = contentMaxWidth ? { width: '100%', maxWidth: contentMaxWidth } : undefined;
+    const contentWrapperStyle = contentMaxWidth ? { width: '100%' as const, maxWidth: contentMaxWidth } : undefined;
     const containerClass = 'w-full self-center px-4 sm:px-6 lg:px-10';
 
     const resourceStats = useMemo(() => {

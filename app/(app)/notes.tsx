@@ -478,7 +478,7 @@ export default function ClientNotesScreen() {
         if (Platform.OS !== 'web' || typeof document === 'undefined') return;
         if (!webEditorRef.current) return;
         const headings = Array.from(webEditorRef.current.querySelectorAll('h1, h2, h3'));
-        const target = headings[outlineIndex];
+        const target = headings[outlineIndex] as HTMLElement;
         if (target && target.scrollIntoView) {
             target.scrollIntoView({ behavior: 'smooth', block: 'center' });
             setActiveOutlineIndex(outlineIndex);
@@ -493,7 +493,7 @@ export default function ClientNotesScreen() {
             const anchorNode = selection?.anchorNode;
             if (!anchorNode || !webEditorRef.current.contains(anchorNode)) return;
             const headings = Array.from(webEditorRef.current.querySelectorAll('h1, h2, h3'));
-            const nextIndex = headings.findIndex((node) => node.contains(anchorNode));
+            const nextIndex = headings.findIndex((node: any) => node.contains(anchorNode));
             if (nextIndex !== -1) {
                 setActiveOutlineIndex(nextIndex);
             }

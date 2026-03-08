@@ -597,7 +597,7 @@ export default function TherapistDashboard() {
                 </View>
             </MotiView>
 
-            <View style={{ width: '100%', maxWidth: 1120, alignSelf: 'center', paddingHorizontal: numColumns === 1 ? 24 : 20, paddingTop: 28 }}>
+            <View style={{ width: '100%', maxWidth: 1120, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28 }}>
                 <View style={{ flexDirection: screenWidth < 1080 ? 'column' : 'row', gap: 16, marginBottom: 28 }}>
                     <TherapistMetricCard
                         icon={User}
