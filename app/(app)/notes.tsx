@@ -1036,25 +1036,25 @@ export default function ClientNotesScreen() {
                 {!loading ? (
                     <View style={{ paddingHorizontal: 24, paddingTop: 20, width: '100%', maxWidth: 960, alignSelf: 'center' }}>
                         <View style={{ flexDirection: width > 768 ? 'row' : 'column', gap: 12, marginBottom: 20 }}>
-                            <PressableScale onPress={() => setFilter('all')} style={{ flex: 1 }}>
+                            <PressableScale className="flex-1" onPress={() => setFilter('all')} style={{ flex: 1 }}>
                                 <ClientMetricCard
                                     icon={Edit3}
                                     label={i18n.t('notes.stats.total_label', { defaultValue: 'Journal entries' })}
                                     value={String(noteStats.total)}
-                                    hint={i18n.t('notes.stats.total_hint', { defaultValue: 'Alle Einträge anzeigen.' })}
+                                    hint={i18n.t('notes.stats.total_hint', { defaultValue: 'Alle Eintr\u00e4ge anzeigen.' })}
                                     tone="primary"
                                 />
                             </PressableScale>
-                            <PressableScale onPress={() => setFilter('mine')} style={{ flex: 1 }}>
+                            <PressableScale className="flex-1" onPress={() => setFilter('mine')} style={{ flex: 1 }}>
                                 <ClientMetricCard
                                     icon={Lock}
-                                    label={i18n.t('notes.stats.private_label', { defaultValue: 'Private Einträge' })}
+                                    label={i18n.t('notes.stats.private_label', { defaultValue: 'Private Eintr\u00e4ge' })}
                                     value={String(noteStats.mine)}
-                                    hint={i18n.t('notes.stats.private_hint', { defaultValue: 'Notizen nur für dich.' })}
+                                    hint={i18n.t('notes.stats.private_hint', { defaultValue: 'Notizen nur f\u00fcr dich.' })}
                                     tone="secondary"
                                 />
                             </PressableScale>
-                            <PressableScale onPress={() => setFilter('therapist')} style={{ flex: 1 }}>
+                            <PressableScale className="flex-1" onPress={() => setFilter('therapist')} style={{ flex: 1 }}>
                                 <ClientMetricCard
                                     icon={UserSquare2}
                                     label={i18n.t('notes.stats.shared_label', { defaultValue: 'Vom Therapeut' })}

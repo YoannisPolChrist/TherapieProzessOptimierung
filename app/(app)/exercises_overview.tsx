@@ -201,6 +201,7 @@ export default function ExercisesOverview() {
                 <View style={[contentWrapperStyle, { paddingHorizontal: gutter }]}>
                     <View style={{ flexDirection: isTablet ? 'row' : 'column', gap: sectionGap, marginBottom: 24 }}>
                         <PressableScale
+                            className="flex-1"
                             accessibilityRole="button"
                             accessibilityState={{ selected: activeFilter === 'all' }}
                             onPress={() => {
@@ -212,12 +213,8 @@ export default function ExercisesOverview() {
                             withHaptics={false}
                             intensity="medium"
                             style={[
-                                { flex: 1 },
-                                activeFilter === 'all' && {
-                                    borderRadius: 28,
-                                    borderWidth: 2,
-                                    borderColor: colors.primary,
-                                },
+                                { flex: 1, borderWidth: 2, borderColor: 'transparent', borderRadius: 28 },
+                                activeFilter === 'all' && { borderColor: colors.primary }
                             ]}
                         >
                             <ClientMetricCard
@@ -229,6 +226,7 @@ export default function ExercisesOverview() {
                             />
                         </PressableScale>
                         <PressableScale
+                            className="flex-1"
                             accessibilityRole="button"
                             accessibilityState={{ selected: activeFilter === 'open' }}
                             onPress={() => {
@@ -240,12 +238,8 @@ export default function ExercisesOverview() {
                             withHaptics={false}
                             intensity="medium"
                             style={[
-                                { flex: 1 },
-                                activeFilter === 'open' && {
-                                    borderRadius: 28,
-                                    borderWidth: 2,
-                                    borderColor: colors.primary,
-                                },
+                                { flex: 1, borderWidth: 2, borderColor: 'transparent', borderRadius: 28 },
+                                activeFilter === 'open' && { borderColor: colors.primary }
                             ]}
                         >
                             <ClientMetricCard
@@ -257,6 +251,7 @@ export default function ExercisesOverview() {
                             />
                         </PressableScale>
                         <PressableScale
+                            className="flex-1"
                             accessibilityRole="button"
                             accessibilityState={{ selected: activeFilter === 'completed' }}
                             onPress={() => {
@@ -268,12 +263,8 @@ export default function ExercisesOverview() {
                             withHaptics={false}
                             intensity="medium"
                             style={[
-                                { flex: 1 },
-                                activeFilter === 'completed' && {
-                                    borderRadius: 28,
-                                    borderWidth: 2,
-                                    borderColor: colors.primary,
-                                },
+                                { flex: 1, borderWidth: 2, borderColor: 'transparent', borderRadius: 28 },
+                                activeFilter === 'completed' && { borderColor: colors.primary }
                             ]}
                         >
                             <ClientMetricCard
@@ -388,8 +379,8 @@ export default function ExercisesOverview() {
                             ) : null}
 
                             {activeFilter !== 'all' &&
-                            visibleOpenExercises.length === 0 &&
-                            visibleCompletedExercises.length === 0 ? (
+                                visibleOpenExercises.length === 0 &&
+                                visibleCompletedExercises.length === 0 ? (
                                 <View
                                     style={{
                                         borderRadius: 24,

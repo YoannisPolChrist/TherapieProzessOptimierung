@@ -513,14 +513,12 @@ export default function TherapistDashboard() {
                     </BlurView>
 
                     <View style={{ flexDirection: screenWidth < 900 ? 'column' : 'row', gap: 16 }}>
-                        <PressableScale onPress={() => router.push('/(app)/therapist/templates')}>
+                        <PressableScale style={{ flex: 1 }} onPress={() => router.push('/(app)/therapist/templates')}>
                             <Card
                                 variant="elevated"
                                 padding="lg"
                                 style={{
-                                    flex: 1,
                                     minHeight: 152,
-                                    minWidth: screenWidth < 900 ? undefined : 0,
                                     backgroundColor: isDark ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255,255,255,0.95)',
                                 }}
                             >
@@ -534,14 +532,12 @@ export default function TherapistDashboard() {
                             </Card>
                         </PressableScale>
 
-                        <PressableScale onPress={() => router.push('/(app)/therapist/resources')}>
+                        <PressableScale style={{ flex: 1 }} onPress={() => router.push('/(app)/therapist/resources')}>
                             <Card
                                 variant="elevated"
                                 padding="lg"
                                 style={{
-                                    flex: 1,
                                     minHeight: 152,
-                                    minWidth: screenWidth < 900 ? undefined : 0,
                                     backgroundColor: isDark ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255,255,255,0.95)',
                                 }}
                             >

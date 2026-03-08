@@ -2,7 +2,7 @@ import { View, Text, ActivityIndicator, InteractionManager, Linking, Platform } 
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { MotiView } from 'moti';
-import { Settings, Calendar, BookOpen, Edit3, CheckCircle2 } from 'lucide-react-native';
+import { Settings, Calendar, BookOpen, Edit3, CheckCircle2, Sun, Moon } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAppStore } from '../../utils/useAppStore';
 import { useAuth } from '../../contexts/AuthContext';
@@ -48,7 +48,7 @@ export default function ClientDashboard() {
     const { checkedInToday, recentCheckins, fetchCheckinStatus } = useCheckinStatus(profile?.id);
 
     const [notifications, setNotifications] = useState<any[]>([]);
-    const { colors, isDark } = useTheme();
+    const { theme, setTheme, colors, isDark } = useTheme();
     const locale = i18n.locale || 'de-DE';
 
     // Replace context-bound state with Zustand global store state
@@ -281,23 +281,43 @@ export default function ClientDashboard() {
                                         })}
                                     </Text>
                                 </View>
-                                {/* Settings button */}
-                                <PressableScale
-                                    onPress={() => {
-                                        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                        router.push('/(app)/settings' as any);
-                                    }}
-                                    intensity="subtle"
-                                    className="self-start rounded-2xl border flex-row items-center"
-                                    style={{
-                                        backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
-                                        paddingHorizontal: isSm ? 12 : 18,
-                                        paddingVertical: isSm ? 10 : 16,
-                                        borderColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
-                                    }}
-                                >
-                                    <Settings size={isSm ? 18 : 22} color={colors.text} />
-                                </PressableScale>
+                                <View className="flex-row gap-2 items-center">
+                                    {/* Theme Toggle */}
+                                    <PressableScale
+                                        onPress={() => {
+                                            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                            setTheme(isDark ? 'light' : 'dark');
+                                        }}
+                                        intensity="subtle"
+                                        className="self-start rounded-2xl border flex-row items-center justify-center"
+                                        style={{
+                                            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                                            paddingHorizontal: isSm ? 12 : 18,
+                                            paddingVertical: isSm ? 10 : 16,
+                                            borderColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+                                        }}
+                                    >
+                                        {isDark ? <Sun size={isSm ? 18 : 22} color={colors.text} /> : <Moon size={isSm ? 18 : 22} color={colors.text} />}
+                                    </PressableScale>
+
+                                    {/* Settings button */}
+                                    <PressableScale
+                                        onPress={() => {
+                                            if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                            router.push('/(app)/settings' as any);
+                                        }}
+                                        intensity="subtle"
+                                        className="self-start rounded-2xl border flex-row items-center justify-center"
+                                        style={{
+                                            backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
+                                            paddingHorizontal: isSm ? 12 : 18,
+                                            paddingVertical: isSm ? 10 : 16,
+                                            borderColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+                                        }}
+                                    >
+                                        <Settings size={isSm ? 18 : 22} color={colors.text} />
+                                    </PressableScale>
+                                </View>
                             </View>
 
                         </BlurView>
