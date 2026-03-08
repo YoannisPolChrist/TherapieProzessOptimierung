@@ -2,7 +2,7 @@ import { View, Text, ActivityIndicator, InteractionManager, Linking, Platform } 
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { MotiView } from 'moti';
-import { Settings, Calendar, BookOpen, Edit3 } from 'lucide-react-native';
+import { Settings, Calendar, BookOpen, Edit3, CheckCircle2 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useAppStore } from '../../utils/useAppStore';
 import { useAuth } from '../../contexts/AuthContext';
@@ -57,6 +57,7 @@ export default function ClientDashboard() {
 
     // ── Responsive layout ─────────────────────────────────────────────────────
     const { width: screenWidth, isXs, isSm, isTablet, isDesktop, contentMaxWidth, gutter, sectionGap, headerTop } = useResponsiveLayout();
+    const containerClass = 'w-full self-center px-4 sm:px-6 lg:px-10';
 
     const randomBg = useMemo(() => HOME_BACKGROUNDS[Math.floor(Math.random() * HOME_BACKGROUNDS.length)], []);
 
@@ -134,6 +135,7 @@ export default function ClientDashboard() {
     };
 
     const openExercises = useMemo(() => exercises.filter(ex => !ex.completed), [exercises]);
+    const completedExercises = useMemo(() => exercises.filter(ex => ex.completed), [exercises]);
     const showExercisesCarousel = !isTablet;
     const cardRailItemWidth = Math.min(Math.max(screenWidth - (gutter * 2) - 16, 260), 360);
     const cardRailGap = isDesktop ? 28 : 18;
@@ -195,22 +197,22 @@ export default function ClientDashboard() {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View className="flex-1" style={{ backgroundColor: colors.background }}>
             <Animated.ScrollView
+                className="flex-1"
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 56 }}
-                style={{ flex: 1 }}
                 bounces={false}
             >
                 {/* ── Header ────────────────────────────────── */}
                 <View
+                    className="w-full overflow-hidden"
                     style={{
                         paddingTop: headerTop,
                         paddingBottom: isXs ? 24 : isSm ? 32 : 56,
                         paddingHorizontal: isXs ? 12 : 20,
                         borderBottomLeftRadius: isSm ? 32 : 48,
                         borderBottomRightRadius: isSm ? 32 : 48,
-                        overflow: 'hidden',
                         zIndex: 10,
                         shadowColor: colors.primaryDark,
                         shadowOffset: { width: 0, height: 12 },
@@ -227,7 +229,7 @@ export default function ClientDashboard() {
                     />
 
                     {/* Foreground Card — fully responsive */}
-                    <View style={{ zIndex: 10, maxWidth: 680, width: '100%', alignSelf: 'center' }} pointerEvents="box-none">
+                    <View className="w-full max-w-[680px] self-center" style={{ zIndex: 10 }} pointerEvents="box-none">
                         <BlurView
                             intensity={Platform.OS === 'android' ? 100 : 60}
                             tint={isDark ? 'dark' : 'light'}
@@ -256,8 +258,11 @@ export default function ClientDashboard() {
                             )}
 
                             {/* Greeting row */}
-                            <View style={{ flexDirection: isXs ? 'column' : 'row', justifyContent: 'space-between', alignItems: isXs ? 'flex-start' : 'center', marginBottom: isSm ? 12 : 20, gap: isXs ? 12 : 0 }}>
-                                <View style={{ flex: 1, paddingRight: 12 }}>
+                            <View
+                                className={`flex ${isXs ? 'flex-col items-start gap-3' : 'flex-row items-center gap-4'} justify-between`}
+                                style={{ marginBottom: isSm ? 12 : 20 }}
+                            >
+                                <View className="flex-1 pr-3">
                                     <Text
                                         style={{
                                             fontSize: isXs ? 20 : isSm ? 24 : 34,
@@ -283,14 +288,12 @@ export default function ClientDashboard() {
                                         router.push('/(app)/settings' as any);
                                     }}
                                     intensity="subtle"
+                                    className="self-start rounded-2xl border flex-row items-center"
                                     style={{
                                         backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.04)',
                                         paddingHorizontal: isSm ? 12 : 18,
                                         paddingVertical: isSm ? 10 : 16,
-                                        borderRadius: 18,
-                                        borderWidth: 1,
                                         borderColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
-                                        alignSelf: isXs ? 'flex-start' : 'auto',
                                     }}
                                 >
                                     <Settings size={isSm ? 18 : 22} color={colors.text} />
@@ -302,13 +305,19 @@ export default function ClientDashboard() {
                 </View>
 
                 {/* Responsive content column: no max-width on mobile, capped on tablet/desktop */}
-                <View style={[contentMaxWidth ? { maxWidth: contentMaxWidth, width: '100%', alignSelf: 'center' } : undefined, { paddingHorizontal: gutter }]}>
-                    <View style={{ flexDirection: isTablet ? 'row' : 'column', gap: sectionGap, marginBottom: 20 }}>
+                <View
+                    className={containerClass}
+                    style={contentMaxWidth ? { maxWidth: contentMaxWidth, width: '100%' } : undefined}
+                >
+                    <View
+                        className={`flex w-full ${isTablet ? 'flex-row' : 'flex-col'}`}
+                        style={{ gap: sectionGap, marginBottom: 20 }}
+                    >
                         <PressableScale
                             accessibilityRole="button"
                             accessibilityLabel={`${openMetricLabel}. ${openMetricHint}`}
                             onPress={() => router.push('/(app)/exercises_overview' as any)}
-                            style={{ flex: 1, width: '100%' }}
+                            className="flex-1 w-full"
                             withHaptics={false}
                         >
                             <ClientMetricCard
@@ -323,7 +332,7 @@ export default function ClientDashboard() {
                             accessibilityRole="button"
                             accessibilityLabel={`${checkinsMetricLabel}. ${checkinsMetricHint}`}
                             onPress={() => router.push('/(app)/checkins_overview' as any)}
-                            style={{ flex: 1, width: '100%' }}
+                            className="flex-1 w-full"
                             withHaptics={false}
                         >
                             <ClientMetricCard
@@ -348,17 +357,19 @@ export default function ClientDashboard() {
                             transition={{ type: 'timing', duration: 400, delay: 100 }}
                             style={{ marginBottom: 20 }}
                         >
-                            <View className={`border rounded-3xl p-5 ${isDark ? 'bg-pink-600/15 border-pink-600/30' : 'bg-pink-50 border-pink-100'
-                                }`}>
-                                <View className="flex-row items-center mb-3">
-                                    <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: isDark ? 'rgba(219, 39, 119, 0.2)' : '#FCE7F3', alignItems: 'center', justifyContent: 'center', marginRight: 16 }}>
+                            <View className={`rounded-3xl border p-5 ${isDark ? 'bg-pink-600/15 border-pink-600/30' : 'bg-pink-50 border-pink-100'}`}>
+                                <View className="mb-3 flex-row items-center">
+                                    <View
+                                        className="mr-4 flex h-11 w-11 items-center justify-center rounded-full"
+                                        style={{ backgroundColor: isDark ? 'rgba(219, 39, 119, 0.2)' : '#FCE7F3' }}
+                                    >
                                         <Calendar size={24} color="#DB2777" />
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 13, fontWeight: '700', color: '#DB2777', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 2 }}>
+                                        <Text className="mb-0.5 text-[13px] font-bold uppercase tracking-wide" style={{ color: '#DB2777' }}>
                                             {i18n.t('dashboard.next_session.label', { defaultValue: 'Nächster Termin' })}
                                         </Text>
-                                        <Text style={{ fontSize: 20, fontWeight: '900', color: colors.text }}>
+                                        <Text className="text-[20px] font-black" style={{ color: colors.text }}>
                                             {formatAppointmentDisplayValue(profile.nextAppointment, locale) ?? profile.nextAppointment}
                                         </Text>
                                     </View>
@@ -367,15 +378,10 @@ export default function ClientDashboard() {
                                     <PressableScale
                                         onPress={() => Linking.openURL(bookingUrl)}
                                         intensity="medium"
-                                        style={{
-                                            backgroundColor: '#DB2777',
-                                            paddingVertical: 12,
-                                            borderRadius: 16,
-                                            alignItems: 'center',
-                                            marginTop: 4
-                                        }}
+                                        className="mt-1 items-center rounded-2xl py-3"
+                                        style={{ backgroundColor: '#DB2777' }}
                                     >
-                                        <Text style={{ color: 'white', fontWeight: '800', fontSize: 15 }}>
+                                        <Text className="text-base font-black text-white">
                                             {i18n.t('dashboard.next_session.cta', { defaultValue: 'Termin verwalten' })}
                                         </Text>
                                     </PressableScale>
@@ -403,19 +409,22 @@ export default function ClientDashboard() {
                                     shadowRadius: 8,
                                 }}
                             >
-                                <View className={`w-10 h-10 rounded-full items-center justify-center mr-4 ${isDark ? 'bg-sky-500' : 'bg-sky-600'}`}>
+                                <View className={`mr-4 flex h-10 w-10 items-center justify-center rounded-full ${isDark ? 'bg-sky-500' : 'bg-sky-600'}`}>
                                     <BookOpen size={20} color="white" />
                                 </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={{ color: isDark ? '#38BDF8' : '#0369A1', fontWeight: 'bold', fontSize: 16, marginBottom: 2 }}>
+                                <View className="flex-1">
+                                    <Text className="mb-0.5 text-base font-bold" style={{ color: isDark ? '#38BDF8' : '#0369A1' }}>
                                         {notificationsTitle}
                                     </Text>
-                                    <Text style={{ color: isDark ? '#7DD3FC' : '#0284C7', fontSize: 13 }} numberOfLines={2}>
+                                    <Text className="text-[13px]" style={{ color: isDark ? '#7DD3FC' : '#0284C7' }} numberOfLines={2}>
                                         {notificationsBody}
                                     </Text>
                                 </View>
-                                <View style={{ backgroundColor: isDark ? 'rgba(56,189,248,0.2)' : 'rgba(2,132,199,0.1)', padding: 8, borderRadius: 100 }}>
-                                    <Text style={{ color: isDark ? '#38BDF8' : '#0369A1', fontWeight: 'bold' }}>{'>'}</Text>
+                                <View
+                                    className="rounded-full px-2 py-1"
+                                    style={{ backgroundColor: isDark ? 'rgba(56,189,248,0.2)' : 'rgba(2,132,199,0.1)' }}
+                                >
+                                    <Text className="font-bold" style={{ color: isDark ? '#38BDF8' : '#0369A1' }}>{'>'}</Text>
                                 </View>
                             </PressableScale>
                         </MotiView>
@@ -441,7 +450,7 @@ export default function ClientDashboard() {
                             animate={{ opacity: 1, translateY: 0 }}
                             transition={{ type: 'timing', duration: 350, delay: 120 }}
                         >
-                            <Suspense fallback={<View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}><ActivityIndicator color={colors.primary} /></View>}>
+                            <Suspense fallback={<View className="h-[200px] items-center justify-center"><ActivityIndicator color={colors.primary} /></View>}>
                                 <MoodChart checkins={recentCheckins} />
                             </Suspense>
                         </MotiView>
@@ -454,9 +463,9 @@ export default function ClientDashboard() {
                         })}
                     />
 
-                    <View style={{ flexDirection: isTablet ? 'row' : 'column', flexWrap: 'wrap', gap: 12, marginBottom: 24 }}>
+                    <View className="mb-6 flex flex-col gap-3 md:flex-row md:flex-wrap">
                         {bookingUrl ? (
-                            <View style={{ flex: isTablet ? 1 : undefined, width: isTablet ? undefined : '100%' }}>
+                            <View className="w-full md:flex-1">
                                 <MotiView
                                     from={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -477,7 +486,7 @@ export default function ClientDashboard() {
                             </View>
                         ) : null}
 
-                        <View style={{ flex: isTablet ? 1 : undefined, width: isTablet ? undefined : '100%' }}>
+                        <View className="w-full md:flex-1">
                             <MotiView
                                 from={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -495,7 +504,7 @@ export default function ClientDashboard() {
                             </MotiView>
                         </View>
 
-                        <View style={{ flex: isTablet ? 1 : undefined, width: isTablet ? undefined : '100%' }}>
+                        <View className="w-full md:flex-1">
                             <MotiView
                                 from={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -514,6 +523,31 @@ export default function ClientDashboard() {
                                 />
                             </MotiView>
                         </View>
+
+                        {completedExercises.length > 0 ? (
+                            <View className="w-full md:flex-1">
+                                <MotiView
+                                    from={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ type: 'timing', duration: 300, delay: 170 }}
+                                >
+                                    <QuickActionCard
+                                        icon={CheckCircle2}
+                                        title={i18n.t('dashboard.completed_action.title', { defaultValue: 'Abgeschlossene Übungen' })}
+                                        description={i18n.t('dashboard.completed_action.description', {
+                                            defaultValue: 'Öffne erledigte Aufgaben erneut, um Inhalte und Antworten nachzuschauen.',
+                                        })}
+                                        tone="secondary"
+                                        onPress={() => {
+                                            router.push({
+                                                pathname: '/(app)/exercises_overview',
+                                                params: { filter: 'completed' },
+                                            } as any);
+                                        }}
+                                    />
+                                </MotiView>
+                            </View>
+                        ) : null}
                     </View>
 
                     {exercises.length === 0 ? (
@@ -528,13 +562,11 @@ export default function ClientDashboard() {
                         <>
                             {openExercises.length > 0 ? (
                                 <View
+                                    className="mb-6 rounded-[32px] border"
                                     style={{
-                                        marginBottom: 24,
                                         backgroundColor: isDark ? 'rgba(12,20,28,0.9)' : 'rgba(255,255,255,0.96)',
-                                        borderRadius: 32,
                                         paddingHorizontal: isTablet ? 28 : 18,
                                         paddingVertical: 22,
-                                        borderWidth: 1,
                                         borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(15,35,54,0.08)',
                                         shadowColor: isDark ? '#000' : '#0F1F2B',
                                         shadowOffset: { width: 0, height: 16 },

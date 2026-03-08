@@ -3,7 +3,7 @@ import { PressableScale } from '../../components/ui/PressableScale';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import i18n from '../../utils/i18n';
 import { MotiView } from 'moti';
 import {
@@ -173,19 +173,28 @@ const getWordToolbarGroups = (): ToolbarGroup[] => ([
     }
 ]);
 
+const DESKTOP_RIBBON_TABS: { id: 'home' | 'layout' | 'insert' | 'review'; label: string }[] = [
+    { id: 'home', label: 'Start' },
+    { id: 'layout', label: 'Layout' },
+    { id: 'insert', label: 'Einfuegen' },
+    { id: 'review', label: 'Review' },
+];
+
 function stripTags(text: string) {
     return text.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function extractDocumentOutline(content: string) {
+type DocumentOutlineItem = { id: string; title: string; level: number; index: number };
+
+function extractDocumentOutline(content: string): DocumentOutlineItem[] {
     if (!content) return [];
-    const outline: { id: string; title: string; level: number }[] = [];
+    const outline: DocumentOutlineItem[] = [];
     const regex = /<(h[1-3])[^>]*>(.*?)<\/\1>/gi;
     let match: RegExpExecArray | null;
     while ((match = regex.exec(content)) !== null) {
         const level = Number(match[1].replace('h', '')) || 1;
         const title = stripTags(match[2]);
-        outline.push({ id: `${match.index}-${level}`, title: title || `Abschnitt ${outline.length + 1}`, level });
+        outline.push({ id: `${match.index}-${level}`, title: title || `Abschnitt ${outline.length + 1}`, level, index: outline.length });
     }
     return outline.slice(0, 12);
 }
@@ -380,6 +389,15 @@ export default function ClientNotesScreen() {
     const [pageMode, setPageMode] = useState<'page' | 'wide'>('page');
 
     const [toast, setToast] = useState<{ visible: boolean; message: string; subMessage?: string; type: 'success' | 'error' | 'warning' }>({ visible: false, message: '', type: 'success' });
+    const isDesktopComposer = Platform.OS === 'web' && width >= 1100;
+    const [activeRibbon, setActiveRibbon] = useState<'home' | 'layout' | 'insert' | 'review'>('home');
+    const [fontSize, setFontSize] = useState(18);
+    const [lineHeightMultiplier, setLineHeightMultiplier] = useState(1.6);
+    const [pagePadding, setPagePadding] = useState(32);
+    const [showOutlinePanel, setShowOutlinePanel] = useState(true);
+    const [focusMode, setFocusMode] = useState(false);
+    const [inspectorTab, setInspectorTab] = useState<'stats' | 'history' | 'share'>('stats');
+    const [activeOutlineIndex, setActiveOutlineIndex] = useState<number | null>(null);
     const locale = i18n.locale;
     const quickPrompts = useMemo(() => getQuickPrompts(), [locale]);
     const wordTemplates = useMemo(() => getWordTemplates(), [locale]);
@@ -388,6 +406,18 @@ export default function ClientNotesScreen() {
     const canSaveDraft = draftPlainText.length > 0 || !!newNoteImage;
     const documentOutline = useMemo(() => extractDocumentOutline(newNoteContent || ''), [newNoteContent]);
     const documentStats = useMemo(() => calculateDocumentStats(newNoteContent || ''), [newNoteContent]);
+    const computedLineHeightPx = useMemo(() => Math.round(Math.max(fontSize * lineHeightMultiplier, fontSize + 6)), [fontSize, lineHeightMultiplier]);
+    const layoutPresets = useMemo(() => ([
+        { id: 'focus', title: 'Fokus', description: 'Schmale Spalten, ruhige Typografie', font: 18, line: 1.6, padding: 40 },
+        { id: 'report', title: 'Report', description: 'Breitere Seite fuer Berichte', font: 20, line: 1.5, padding: 56 },
+        { id: 'journal', title: 'Journal', description: 'Locker, fuer schnelle Gedanken', font: 17, line: 1.45, padding: 32 },
+    ]), []);
+    const insertBlocks = useMemo(() => ([
+        { id: 'callout', title: 'Hinweisbox', description: 'Markierter Infoblock', html: '<div style=\"border-left:4px solid #2D666B;padding:16px;background:#F1F5F9;border-radius:16px;margin:12px 0\"><strong>Hinweis:</strong><p>Ergaenze hier eine wichtige Erkenntnis.</p></div>' },
+        { id: 'columns', title: '2 Spalten', description: 'Vergleich nebeneinander', html: '<div style=\"display:flex;gap:18px;margin:14px 0\"><div style=\"flex:1\"><h3>Spalte A</h3><p>...</p></div><div style=\"flex:1\"><h3>Spalte B</h3><p>...</p></div></div>' },
+        { id: 'timeline', title: 'Timeline', description: 'Chronologische Liste', html: '<ol style=\"list-style:none;padding:0;margin:14px 0\"><li style=\"display:flex;gap:12px;margin-bottom:12px\"><span style=\"width:90px;font-weight:700;color:#64748B\">Zeitpunkt</span><div><strong>Ereignis</strong><p>Beschreibung...</p></div></li><li style=\"display:flex;gap:12px\"><span style=\"width:90px;font-weight:700;color:#64748B\">Zeitpunkt</span><div><strong>Ereignis</strong><p>Beschreibung...</p></div></li></ol>' },
+    ]), []);
+    const flattenToolbarCommands = useMemo(() => toolbarGroups.flatMap(group => group.commands), [toolbarGroups]);
 
     const syncWebEditorContent = useCallback((html: string) => {
         if (Platform.OS === 'web' && webEditorRef.current) {
@@ -404,6 +434,168 @@ export default function ClientNotesScreen() {
         if (Platform.OS !== 'web' || !webEditorRef.current) return;
         webEditorRef.current.focus();
     }, []);
+
+    const insertHtmlBlock = useCallback((html: string) => {
+        if (!html) return;
+        if (Platform.OS === 'web') {
+            if (typeof document !== 'undefined') {
+                focusWebEditor();
+                try {
+                    document.execCommand('insertHTML', false, html);
+                } catch (error) {
+                    console.error('Insert block failed', error);
+                }
+            }
+            setTimeout(handleWebEditorInput, 16);
+            return;
+        }
+        if (richText.current?.insertHTML) {
+            richText.current.insertHTML(html);
+        }
+        setNewNoteContent(prev => (prev ? `${prev}${html}` : html));
+    }, [focusWebEditor, handleWebEditorInput]);
+
+    const handleFontSizeStep = useCallback((delta: number) => {
+        setFontSize(prev => Math.min(28, Math.max(14, prev + delta)));
+    }, []);
+
+    const handleLineHeightSelect = useCallback((value: number) => {
+        setLineHeightMultiplier(value);
+    }, []);
+
+    const handlePagePaddingStep = useCallback((delta: number) => {
+        setPagePadding(prev => Math.min(72, Math.max(24, prev + delta)));
+    }, []);
+
+    const applyLayoutPreset = useCallback((preset: { font: number; line: number; padding: number }) => {
+        setFontSize(preset.font);
+        setLineHeightMultiplier(preset.line);
+        setPagePadding(preset.padding);
+        setPageMode('page');
+    }, []);
+
+    const handleOutlineNavigate = useCallback((outlineIndex: number) => {
+        if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+        if (!webEditorRef.current) return;
+        const headings = Array.from(webEditorRef.current.querySelectorAll('h1, h2, h3'));
+        const target = headings[outlineIndex];
+        if (target && target.scrollIntoView) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setActiveOutlineIndex(outlineIndex);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!showNoteModal || Platform.OS !== 'web' || typeof document === 'undefined') return;
+        const handler = () => {
+            if (!webEditorRef.current) return;
+            const selection = document.getSelection();
+            const anchorNode = selection?.anchorNode;
+            if (!anchorNode || !webEditorRef.current.contains(anchorNode)) return;
+            const headings = Array.from(webEditorRef.current.querySelectorAll('h1, h2, h3'));
+            const nextIndex = headings.findIndex((node) => node.contains(anchorNode));
+            if (nextIndex !== -1) {
+                setActiveOutlineIndex(nextIndex);
+            }
+        };
+        document.addEventListener('selectionchange', handler);
+        return () => document.removeEventListener('selectionchange', handler);
+    }, [showNoteModal]);
+
+    useEffect(() => {
+        if (documentOutline.length === 0) {
+            setActiveOutlineIndex(null);
+            return;
+        }
+        setActiveOutlineIndex((current) => {
+            if (current === null) return current;
+            if (current >= documentOutline.length) {
+                return documentOutline.length - 1;
+            }
+            return current;
+        });
+    }, [documentOutline]);
+
+    const renderRibbonContent = () => {
+        if (!isDesktopComposer) return null;
+        if (activeRibbon === 'home') {
+            return (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 16, backgroundColor: '#F8F5F0', borderWidth: 1, borderColor: '#E7E0D4' }}>
+                        <PressableScale onPress={() => handleFontSizeStep(-1)} style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E2DED5' }}>
+                            <Text style={{ fontWeight: '800', color: '#1F2528' }}>A-</Text>
+                        </PressableScale>
+                        <Text style={{ fontWeight: '800', color: '#1F2528' }}>{fontSize}px</Text>
+                        <PressableScale onPress={() => handleFontSizeStep(1)} style={{ paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E2DED5' }}>
+                            <Text style={{ fontWeight: '800', color: '#1F2528' }}>A+</Text>
+                        </PressableScale>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 16, backgroundColor: '#F8F5F0', borderWidth: 1, borderColor: '#E7E0D4' }}>
+                        {[1.3, 1.5, 1.8].map((value) => (
+                            <PressableScale key={value} onPress={() => handleLineHeightSelect(value)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: lineHeightMultiplier === value ? '#2D666B' : '#FFFFFF', borderWidth: 1, borderColor: lineHeightMultiplier === value ? '#2D666B' : '#E2DED5' }}>
+                                <Text style={{ fontWeight: '800', color: lineHeightMultiplier === value ? '#FFFFFF' : '#1F2528' }}>{value.toFixed(1)}</Text>
+                            </PressableScale>
+                        ))}
+                    </View>
+                    <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                        {flattenToolbarCommands.map((cmd) => (
+                            <PressableScale key={cmd.command} onPress={() => handleFormatCommand(cmd.command)} style={{ padding: 10, borderRadius: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2DED5' }}>
+                                <cmd.icon size={16} color="#2D666B" />
+                            </PressableScale>
+                        ))}
+                    </View>
+                </View>
+            );
+        }
+        if (activeRibbon === 'layout') {
+            return (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                    {layoutPresets.map((preset) => (
+                        <PressableScale key={preset.id} onPress={() => applyLayoutPreset(preset)} style={{ padding: 12, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2DED5', minWidth: 160 }}>
+                            <Text style={{ fontWeight: '800', color: '#1F2528' }}>{preset.title}</Text>
+                            <Text style={{ fontSize: 12, color: '#6B7280' }}>{preset.description}</Text>
+                        </PressableScale>
+                    ))}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2DED5' }}>
+                        <PressableScale onPress={() => handlePagePaddingStep(-4)} style={{ padding: 8, borderRadius: 12, backgroundColor: '#F5F1EA' }}>
+                            <Text style={{ fontWeight: '800', color: '#1F2528' }}>-</Text>
+                        </PressableScale>
+                        <Text style={{ fontWeight: '800', color: '#1F2528' }}>{Math.round(pagePadding)} px</Text>
+                        <PressableScale onPress={() => handlePagePaddingStep(4)} style={{ padding: 8, borderRadius: 12, backgroundColor: '#F5F1EA' }}>
+                            <Text style={{ fontWeight: '800', color: '#1F2528' }}>+</Text>
+                        </PressableScale>
+                    </View>
+                </View>
+            );
+        }
+        if (activeRibbon === 'insert') {
+            return (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                    {insertBlocks.map((block) => (
+                        <PressableScale key={block.id} onPress={() => insertHtmlBlock(block.html)} style={{ padding: 14, borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2DED5', minWidth: 170 }}>
+                            <Text style={{ fontWeight: '900', color: '#1F2528', marginBottom: 4 }}>{block.title}</Text>
+                            <Text style={{ fontSize: 12, color: '#64748B' }}>{block.description}</Text>
+                        </PressableScale>
+                    ))}
+                </View>
+            );
+        }
+        return (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                <PressableScale onPress={() => setIsShared(!isShared)} style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: isShared ? '#EEF2FF' : '#FFFFFF', borderWidth: 1, borderColor: isShared ? '#4338CA' : '#E2DED5' }}>
+                    <Text style={{ fontWeight: '800', color: isShared ? '#4338CA' : '#1F2528' }}>
+                        {isShared ? i18n.t('notes.privacy.shared', { defaultValue: 'Freigegeben' }) : i18n.t('notes.privacy.private', { defaultValue: 'Privat' })}
+                    </Text>
+                </PressableScale>
+                <PressableScale onPress={() => setFocusMode(!focusMode)} style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: focusMode ? '#0F172A' : '#FFFFFF', borderWidth: 1, borderColor: focusMode ? '#0F172A' : '#E2DED5' }}>
+                    <Text style={{ fontWeight: '800', color: focusMode ? '#FFFFFF' : '#1F2528' }}>{focusMode ? 'Fokus an' : 'Fokus aus'}</Text>
+                </PressableScale>
+                <PressableScale onPress={() => setShowOutlinePanel(!showOutlinePanel)} style={{ paddingHorizontal: 14, paddingVertical: 10, borderRadius: 14, backgroundColor: showOutlinePanel ? '#FFFFFF' : '#F3F4F6', borderWidth: 1, borderColor: '#E2DED5' }}>
+                    <Text style={{ fontWeight: '800', color: '#1F2528' }}>{showOutlinePanel ? 'Outline sichtbar' : 'Outline versteckt'}</Text>
+                </PressableScale>
+            </View>
+        );
+    };
 
     const resetComposer = useCallback(() => {
         setEditingNoteId(null);
@@ -742,6 +934,7 @@ export default function ClientNotesScreen() {
         therapist: notes.filter(n => n.authorRole === 'therapist' && n.isShared && n.type !== 'session').length,
     }), [notes]);
     const lastUpdatedNote = filteredNotes[0];
+    const recentNotes = useMemo(() => filteredNotes.slice(0, 3), [filteredNotes]);
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -954,9 +1147,9 @@ export default function ClientNotesScreen() {
             <Modal visible={showNoteModal} animationType="slide" presentationStyle="formSheet">
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={{ flex: 1, backgroundColor: '#ffffff' }}
+                    style={{ flex: 1, backgroundColor: isDesktopComposer && focusMode ? '#0B1220' : '#ffffff' }}
                 >
-                    <View style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 60 : 20, backgroundColor: '#ffffff' }}>
+                    <View style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 60 : 20, backgroundColor: isDesktopComposer ? 'transparent' : '#ffffff' }}>
 
                         {/* Minimalist Bear-Style Header */}
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 16 }}>
@@ -1037,38 +1230,131 @@ export default function ClientNotesScreen() {
                             ))}
                         </ScrollView>
 
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 12, gap: 10 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                <PressableScale
-                                    onPress={() => setPageMode('page')}
-                                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: pageMode === 'page' ? '#2D666B' : '#E7E0D4', backgroundColor: pageMode === 'page' ? '#E0F2F1' : '#F5F1EA' }}
-                                >
-                                    <Text style={{ fontSize: 12, fontWeight: '800', color: pageMode === 'page' ? '#1F4F52' : '#6F7472' }}>Seitenlayout</Text>
-                                </PressableScale>
-                                <PressableScale
-                                    onPress={() => setPageMode('wide')}
-                                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: pageMode === 'wide' ? '#2D666B' : '#E7E0D4', backgroundColor: pageMode === 'wide' ? '#E0F2F1' : '#F5F1EA' }}
-                                >
-                                    <Text style={{ fontSize: 12, fontWeight: '800', color: pageMode === 'wide' ? '#1F4F52' : '#6F7472' }}>Volle Breite</Text>
-                                </PressableScale>
-                            </View>
-                        </ScrollView>
-
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 12, gap: 16 }}>
-                            {toolbarGroups.map(group => (
-                                <View key={group.label} style={{ backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: '#ECE4D9', paddingVertical: 8, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                    {group.commands.map(cmd => (
-                                        <PressableScale
-                                            key={cmd.command}
-                                            onPress={() => handleFormatCommand(cmd.command)}
-                                            style={{ padding: 8, borderRadius: 12, backgroundColor: '#F6F2EC' }}
-                                        >
-                                            <cmd.icon size={16} color="#2D666B" />
-                                        </PressableScale>
-                                    ))}
+                        {isDesktopComposer && (
+                            <View style={{ marginHorizontal: 24, marginBottom: 16, backgroundColor: focusMode ? '#101624' : '#FFFFFF', borderRadius: 24, borderWidth: 1, borderColor: '#E7E0D4', shadowColor: '#000', shadowOpacity: focusMode ? 0.2 : 0.06, shadowRadius: 18, elevation: 3 }}>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 14, gap: 12 }}>
+                                    {DESKTOP_RIBBON_TABS.map(tab => {
+                                        const isActive = activeRibbon === tab.id;
+                                        return (
+                                            <PressableScale
+                                                key={tab.id}
+                                                onPress={() => setActiveRibbon(tab.id)}
+                                                style={{
+                                                    paddingHorizontal: 16,
+                                                    paddingVertical: 8,
+                                                    borderRadius: 14,
+                                                    backgroundColor: isActive ? '#2D666B' : 'transparent',
+                                                    borderWidth: 1,
+                                                    borderColor: isActive ? '#2D666B' : '#E7E0D4'
+                                                }}
+                                            >
+                                                <Text style={{ fontWeight: '800', color: isActive ? '#FFFFFF' : '#1F2528' }}>{tab.label}</Text>
+                                            </PressableScale>
+                                        );
+                                    })}
+                                </ScrollView>
+                                <View style={{ paddingHorizontal: 20, paddingBottom: 20 }}>
+                                    {renderRibbonContent()}
                                 </View>
-                            ))}
-                        </ScrollView>
+                            </View>
+                        )}
+
+                        {isDesktopComposer && (
+                            <View style={{ paddingHorizontal: 24, marginBottom: 20 }}>
+                                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+                                    {['stats', 'history', 'share'].map(tab => {
+                                        const label = tab === 'stats' ? 'Statistik' : tab === 'history' ? 'Historie' : 'Freigabe';
+                                        const isActive = inspectorTab === tab;
+                                        return (
+                                            <PressableScale
+                                                key={tab}
+                                                onPress={() => setInspectorTab(tab as 'stats' | 'history' | 'share')}
+                                                style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, backgroundColor: isActive ? '#2D666B' : '#F3F0E9', borderWidth: 1, borderColor: isActive ? '#2D666B' : '#E2DED5' }}
+                                            >
+                                                <Text style={{ fontWeight: '800', color: isActive ? '#FFFFFF' : '#1F2528' }}>{label}</Text>
+                                            </PressableScale>
+                                        );
+                                    })}
+                                </View>
+                                <View style={{ backgroundColor: '#FFFFFF', borderRadius: 22, borderWidth: 1, borderColor: '#ECE4D9', padding: 18, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 18, elevation: 3 }}>
+                                    {inspectorTab === 'stats' && (
+                                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                                            <View style={{ minWidth: 120 }}>
+                                                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '800' }}>WÃ¶rter</Text>
+                                                <Text style={{ fontSize: 22, fontWeight: '900', color: '#1F2528' }}>{documentStats.words}</Text>
+                                            </View>
+                                            <View style={{ minWidth: 120 }}>
+                                                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '800' }}>{i18n.t('notes.characters_label', { defaultValue: 'Zeichen' })}</Text>
+                                                <Text style={{ fontSize: 22, fontWeight: '900', color: '#1F2528' }}>{documentStats.characters}</Text>
+                                            </View>
+                                            <View style={{ minWidth: 120 }}>
+                                                <Text style={{ fontSize: 12, color: '#94A3B8', fontWeight: '800' }}>Lesedauer</Text>
+                                                <Text style={{ fontSize: 22, fontWeight: '900', color: '#1F2528' }}>{documentStats.readingMinutes} min</Text>
+                                            </View>
+                                        </View>
+                                    )}
+                                    {inspectorTab === 'history' && (
+                                        <View style={{ gap: 10 }}>
+                                            {recentNotes.length === 0 ? (
+                                                <Text style={{ color: '#94A3B8' }}>Noch keine EintrÃ¤ge.</Text>
+                                            ) : recentNotes.map(note => (
+                                                <View key={note.id} style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
+                                                    <Text style={{ fontWeight: '800', color: '#1F2528' }}>{note.title || 'Unbenannt'}</Text>
+                                                    <Text style={{ fontSize: 12, color: '#94A3B8' }}>{formatDateTime(note.updatedAt || note.createdAt)}</Text>
+                                                </View>
+                                            ))}
+                                        </View>
+                                    )}
+                                    {inspectorTab === 'share' && (
+                                        <View style={{ gap: 12 }}>
+                                            <PressableScale onPress={() => setIsShared(!isShared)} style={{ padding: 12, borderRadius: 14, backgroundColor: isShared ? '#EEF2FF' : '#F5F1EA', borderWidth: 1, borderColor: isShared ? '#4338CA' : '#E7E0D4' }}>
+                                                <Text style={{ fontWeight: '800', color: isShared ? '#4338CA' : '#1F2528' }}>
+                                                    {isShared ? i18n.t('notes.privacy.shared_hint', { defaultValue: 'Sichtbar fÃ¼r Therapeut' }) : i18n.t('notes.privacy.private_hint', { defaultValue: 'Nur fÃ¼r mich sichtbar' })}
+                                                </Text>
+                                            </PressableScale>
+                                            <Text style={{ fontSize: 12, color: '#94A3B8' }}>Nutze die Freigabe, um diese Notiz gemeinsam zu besprechen.</Text>
+                                        </View>
+                                    )}
+                                </View>
+                            </View>
+                        )}
+
+                        {!isDesktopComposer && (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 12, gap: 10 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                    <PressableScale
+                                        onPress={() => setPageMode('page')}
+                                        style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: pageMode === 'page' ? '#2D666B' : '#E7E0D4', backgroundColor: pageMode === 'page' ? '#E0F2F1' : '#F5F1EA' }}
+                                    >
+                                        <Text style={{ fontSize: 12, fontWeight: '800', color: pageMode === 'page' ? '#1F4F52' : '#6F7472' }}>Seitenlayout</Text>
+                                    </PressableScale>
+                                    <PressableScale
+                                        onPress={() => setPageMode('wide')}
+                                        style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: pageMode === 'wide' ? '#2D666B' : '#E7E0D4', backgroundColor: pageMode === 'wide' ? '#E0F2F1' : '#F5F1EA' }}
+                                    >
+                                        <Text style={{ fontSize: 12, fontWeight: '800', color: pageMode === 'wide' ? '#1F4F52' : '#6F7472' }}>Volle Breite</Text>
+                                    </PressableScale>
+                                </View>
+                            </ScrollView>
+                        )}
+
+                        {!isDesktopComposer && (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 12, gap: 16 }}>
+                                {toolbarGroups.map(group => (
+                                    <View key={group.label} style={{ backgroundColor: '#FFF', borderRadius: 18, borderWidth: 1, borderColor: '#ECE4D9', paddingVertical: 8, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        {group.commands.map(cmd => (
+                                            <PressableScale
+                                                key={cmd.command}
+                                                onPress={() => handleFormatCommand(cmd.command)}
+                                                style={{ padding: 8, borderRadius: 12, backgroundColor: '#F6F2EC' }}
+                                            >
+                                                <cmd.icon size={16} color="#2D666B" />
+                                            </PressableScale>
+                                        ))}
+                                    </View>
+                                ))}
+                            </ScrollView>
+                        )}
 
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 12, gap: 10 }}>
                             <View style={{ backgroundColor: '#FFF', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#ECE4D9' }}>
@@ -1091,21 +1377,26 @@ export default function ClientNotesScreen() {
                             </View>
                         </ScrollView>
 
+                        {(!isDesktopComposer || showOutlinePanel) && (
                         <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
                             <View style={{ backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#ECE4D9', padding: 16 }}>
                                 <Text style={{ fontSize: 13, fontWeight: '800', color: '#6F7472', marginBottom: 10 }}>Dokumentenstruktur</Text>
                                 {documentOutline.length === 0 ? (
                                     <Text style={{ fontSize: 12, color: '#9AA29D' }}>Füge Überschriften hinzu, um hier eine Gliederung zu sehen.</Text>
                                 ) : (
-                                    documentOutline.map(item => (
-                                        <View key={item.id} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                                            <View style={{ width: item.level * 8 }} />
-                                            <Text style={{ fontSize: 13, color: '#1F2528', fontWeight: '600' }}>{item.title}</Text>
-                                        </View>
-                                    ))
+                                    documentOutline.map((item, index) => {
+                                        const isActive = activeOutlineIndex === index;
+                                        return (
+                                            <PressableScale key={item.id} onPress={() => handleOutlineNavigate(index)} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, paddingVertical: 4, paddingHorizontal: 6, borderRadius: 10, backgroundColor: isActive ? '#EEF4F3' : 'transparent' }}>
+                                                <View style={{ width: item.level * 8 }} />
+                                                <Text style={{ fontSize: 13, color: isActive ? '#2D666B' : '#1F2528', fontWeight: '600' }}>{item.title}</Text>
+                                            </PressableScale>
+                                        );
+                                    })
                                 )}
                             </View>
                         </View>
+                        )}
 
                         {/* Content Area */}
                         <View style={{ flex: 1, marginBottom: 0 }}>
@@ -1121,7 +1412,7 @@ export default function ClientNotesScreen() {
                                         borderColor: isDragging ? '#2D666B' : '#ECE4D9',
                                         borderStyle: isDragging ? 'dashed' : 'solid',
                                         paddingVertical: 32,
-                                        paddingHorizontal: 32,
+                                        paddingHorizontal: pageMode === 'page' ? pagePadding : 20,
                                         shadowColor: '#000',
                                         shadowOpacity: 0.05,
                                         shadowRadius: 30,
@@ -1166,11 +1457,11 @@ export default function ClientNotesScreen() {
                                                     onBlur: handleWebEditorInput,
                                                     style: {
                                                         minHeight: 240,
-                                                        fontSize: 18,
-                                                        lineHeight: '28px',
-                                                        color: '#1F2528',
+                                                        fontSize,
+                                                        lineHeight: `${computedLineHeightPx}px`,
+                                                        color: focusMode ? '#F8FAFC' : '#1F2528',
                                                         outline: 'none',
-                                                        border: '1px solid #ECE4D9',
+                                                        border: focusMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid #ECE4D9',
                                                         borderRadius: 16,
                                                         padding: 16,
                                                         backgroundColor: 'transparent',
@@ -1188,22 +1479,27 @@ export default function ClientNotesScreen() {
                                                 <RenderHtml
                                                     contentWidth={Math.min(width - 64, 720)}
                                                     source={{ html: newNoteContent || '<p></p>' }}
-                                                    baseStyle={{ fontSize: 17, lineHeight: 26, color: '#1F2528' }}
+                                                    baseStyle={{ fontSize, lineHeight: computedLineHeightPx, color: focusMode ? '#F8FAFC' : '#1F2528' }}
                                                 />
                                             </View>
                                         </>
                                     ) : (
                                         <View style={{ minHeight: 400 }}>
-                                            {RichEditor && (
-                                                <RichEditor
-                                                    ref={richText}
-                                                    initialContentHTML={newNoteContent}
-                                                    onChange={setNewNoteContent}
-                                                    placeholder="Beginne hier zu schreiben..."
-                                                    editorStyle={{ backgroundColor: 'transparent', color: '#3A4340', placeholderColor: '#7E8A90', cssText: 'font-size: 18px; line-height: 28px;' }}
-                                                    style={{ flex: 1, minHeight: 400 }}
-                                                />
-                                            )}
+                                                {RichEditor && (
+                                                    <RichEditor
+                                                        ref={richText}
+                                                        initialContentHTML={newNoteContent}
+                                                        onChange={setNewNoteContent}
+                                                        placeholder="Beginne hier zu schreiben..."
+                                                        editorStyle={{
+                                                            backgroundColor: 'transparent',
+                                                            color: focusMode ? '#F8FAFC' : '#3A4340',
+                                                            placeholderColor: '#7E8A90',
+                                                            cssText: `font-size: ${fontSize}px; line-height: ${computedLineHeightPx}px;`
+                                                        }}
+                                                        style={{ flex: 1, minHeight: 400 }}
+                                                    />
+                                                )}
                                         </View>
                                     )}
                                 </View>

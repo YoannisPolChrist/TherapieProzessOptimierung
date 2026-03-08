@@ -699,121 +699,82 @@ function buildExercisePdfHtml(exercise: Exercise, answers: Answers): string {
     let answerHtml = "";
 
     if (block.type === "text" || block.type === "reflection") {
-      const answer = answers[block.id];
-      answerHtml = answer && answer.trim()
-        ? `
-          <div class="answer-group">
-            <div class="answer-title">Antwort</div>
-            <div class="text-answer">${formatPdfMultiline(answer)}</div>
-          </div>`
-        : `<div class="empty-state">Noch nicht ausgefüllt</div>`;
+      answerHtml = `
+        <div class="answer-group">
+          <div class="answer-title">Antwortfeld</div>
+          <div class="placeholder-lines">
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line short"></div>
+          </div>
+        </div>`;
     } else if (block.type === "scale") {
-      const answer = answers[block.id];
       const min = escapePdfHtml(block.minLabel || "Gar nicht");
       const max = escapePdfHtml(block.maxLabel || "Sehr stark");
-
-      if (answer && answer.trim()) {
-        const selected = parseInt(answer, 10);
-        let dots = "";
-        for (let i = 1; i <= 10; i++) {
-          dots += `<span class="scale-dot ${i <= selected ? "active" : ""}">${i}</span>`;
-        }
-        answerHtml = `
-          <div class="answer-group">
-            <div class="answer-title">Skalenwert</div>
-            <div class="scale-card">
-              <div class="scale-labels"><span>${min}</span><span>${max}</span></div>
-              <div class="scale-dots">${dots}</div>
-              <div class="scale-result">${escapePdfHtml(answer)} / 10</div>
-            </div>
-          </div>`;
-      } else {
-        answerHtml = `<div class="empty-state">Keine Bewertung abgegeben</div>`;
+      let dots = "";
+      for (let i = 1; i <= 10; i++) {
+        dots += `<span class="scale-dot">${i}</span>`;
       }
+      answerHtml = `
+        <div class="answer-group">
+          <div class="answer-title">Skala</div>
+          <div class="scale-card">
+            <div class="scale-labels"><span>${min}</span><span>${max}</span></div>
+            <div class="scale-dots">${dots}</div>
+            <div class="scale-placeholder">Gewünschter Wert: _____ / 10</div>
+          </div>
+        </div>`;
     } else if (block.type === "choice") {
-      const answer = answers[block.id];
-      const rowsHtml = options.map((option) => {
-        const isSelected = option === answer;
-        return `
-          <div class="list-row ${isSelected ? "selected" : ""}">
-            <span class="list-mark">${isSelected ? "Ausgewählt" : ""}</span>
-            <span class="list-text">${escapePdfHtml(option)}</span>
-          </div>`;
-      }).join("");
+      const rowsHtml = options.map((option) => `
+        <div class="list-row">
+          <span class="list-mark">&#9711;</span>
+          <span class="list-text">${escapePdfHtml(option)}</span>
+        </div>`).join("");
 
       answerHtml = rowsHtml
-        ? `<div class="answer-group"><div class="answer-title">Auswahl</div>${rowsHtml}</div>`
-        : answer && answer.trim()
-          ? `
-            <div class="answer-group">
-              <div class="answer-title">Auswahl</div>
-              <div class="text-answer">${formatPdfMultiline(answer)}</div>
-            </div>`
-          : `<div class="empty-state">Keine Auswahl getroffen</div>`;
+        ? `<div class="answer-group"><div class="answer-title">Optionen</div>${rowsHtml}</div>`
+        : `<div class="empty-state">Keine Optionen definiert</div>`;
     } else if (block.type === "checklist") {
-      const answer = answers[block.id];
-      let parsed: string[] = [];
-      try {
-        if (answer) parsed = JSON.parse(answer);
-      } catch {
-        parsed = [];
-      }
-
-      const rowsHtml = options.map((option) => {
-        const isSelected = parsed.includes(option);
-        return `
-          <div class="list-row ${isSelected ? "selected" : ""}">
-            <span class="list-mark">${isSelected ? "Erledigt" : ""}</span>
-            <span class="list-text">${escapePdfHtml(option)}</span>
-          </div>`;
-      }).join("");
+      const rowsHtml = options.map((option) => `
+        <div class="list-row">
+          <span class="list-mark">&#9744;</span>
+          <span class="list-text">${escapePdfHtml(option)}</span>
+        </div>`).join("");
 
       answerHtml = rowsHtml
         ? `<div class="answer-group"><div class="answer-title">Checkliste</div>${rowsHtml}</div>`
-        : `<div class="empty-state">Keine Punkte vorhanden</div>`;
+        : `<div class="empty-state">Keine Checkpunkte vorhanden</div>`;
     } else if (block.type === "homework") {
       const fields = [
-        { label: "A - Auslöser", value: answers[`${block.id}_A`] || "" },
-        { label: "B - Bewertung", value: answers[`${block.id}_B`] || "" },
-        { label: "C - Konsequenz", value: answers[`${block.id}_C`] || "" },
+        { label: "A - Auslöser" },
+        { label: "B - Bewertung" },
+        { label: "C - Konsequenz" },
       ];
 
       const rowsHtml = fields.map((field) => `
         <div class="stack-row">
           <div class="stack-label">${field.label}</div>
-          <div class="stack-value">${field.value.trim() ? formatPdfMultiline(field.value) : "<span class=\"empty-inline\">Nicht ausgefüllt</span>"}</div>
+          <div class="stack-value"><span class="empty-inline">...</span></div>
         </div>`).join("");
 
       answerHtml = `<div class="answer-group"><div class="answer-title">Einträge</div>${rowsHtml}</div>`;
     } else if (block.type === "gratitude") {
-      const rowsHtml = [1, 2, 3].map((item) => {
-        const value = answers[`${block.id}_${item}`] || "";
-        return `
-          <div class="stack-row">
-            <div class="stack-label">${item}</div>
-            <div class="stack-value">${value.trim() ? formatPdfMultiline(value) : "<span class=\"empty-inline\">Nicht ausgefüllt</span>"}</div>
-          </div>`;
-      }).join("");
+      const rowsHtml = [1, 2, 3].map((item) => `
+        <div class="stack-row">
+          <div class="stack-label">${item}</div>
+          <div class="stack-value"><span class="empty-inline">...</span></div>
+        </div>`).join("");
 
       answerHtml = `<div class="answer-group"><div class="answer-title">Dankbarkeit</div>${rowsHtml}</div>`;
     } else if (block.type === "media" || block.type === "video") {
       answerHtml = `<div class="empty-state">Medieninhalt bitte in der App ansehen</div>`;
     } else if (["spider_chart", "bar_chart", "pie_chart", "line_chart", "donut_progress", "stacked_bar_chart", "comparison_bar_chart", "heatmap_grid", "range_chart", "bubble_chart"].includes(block.type)) {
-      let parsed: Record<string, number> = {};
-      try {
-        const answer = answers[block.id];
-        if (answer) parsed = JSON.parse(answer);
-      } catch {
-        parsed = {};
-      }
-
       const rowsHtml = options.map((option) => {
         const label = option.split(":")[0] || "";
-        const value = parsed[label];
         return `
           <div class="stack-row compact">
             <div class="stack-label">${escapePdfHtml(label)}</div>
-            <div class="stack-value">${value !== undefined ? escapePdfHtml(String(value)) : "<span class=\"empty-inline\">-</span>"}</div>
+            <div class="stack-value"><span class="empty-inline">_____</span></div>
           </div>`;
       }).join("");
 
@@ -914,6 +875,19 @@ function buildExercisePdfHtml(exercise: Exercise, answers: Answers): string {
             border-radius: 12px;
             padding: 14px 16px;
           }
+          .placeholder-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+          }
+          .placeholder-lines .line {
+            border-bottom: 1px solid var(--border);
+            height: 14px;
+          }
+          .placeholder-lines .line.short {
+            width: 60%;
+          }
           .answer-title {
             font-size: 11px;
             text-transform: uppercase;
@@ -1009,6 +983,13 @@ function buildExercisePdfHtml(exercise: Exercise, answers: Answers): string {
             font-size: 14px;
             font-weight: 800;
             color: var(--text);
+          }
+          .scale-placeholder {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
           }
           .empty-state {
             padding: 14px 16px;
@@ -1608,6 +1589,8 @@ export default function ExerciseScreen() {
     [colors.primary],
   );
   const isWide = Dimensions.get("window").width > 768;
+  const scrollContentTopPadding = HEADER_HEIGHT + (isWide ? 40 : 72);
+  const firstSectionTopMargin = isWide ? 24 : 40;
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState<Answers>({});
@@ -1858,7 +1841,7 @@ export default function ExerciseScreen() {
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: HEADER_HEIGHT + (isWide ? 24 : 48),
+          paddingTop: scrollContentTopPadding,
           paddingBottom: 40,
           paddingHorizontal: 24,
         }}
@@ -1870,7 +1853,7 @@ export default function ExerciseScreen() {
             flexDirection: isWide ? "row" : "column",
             gap: 12,
             marginBottom: 20,
-            marginTop: isWide ? 8 : 16,
+            marginTop: firstSectionTopMargin,
           }}
         >
           <ClientMetricCard

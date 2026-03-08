@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { EMOTION_PRESETS, getEmotionByScore } from '../../constants/emotions';
+import { normalizeEnergyValue } from '../../constants/checkin';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNetwork } from '../../contexts/NetworkContext';
 import { submitCheckin } from '../../services/checkinService';
@@ -20,7 +21,7 @@ export function useCheckin() {
 
     const [selectedEmotionId, setSelectedEmotionId] = useState<string | null>(null);
     const [note, setNote] = useState('');
-    const [energy, setEnergy] = useState<number>(5);
+    const [energy, setEnergy] = useState<number>(55);
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -44,7 +45,7 @@ export function useCheckin() {
                 const data = snap.data();
                 setSelectedEmotionId(resolveEmotionId(data.mood));
                 setNote(data.note || '');
-                setEnergy(data.energy || 5);
+                setEnergy(normalizeEnergyValue(data.energy, 55));
                 setAlreadyCompleted(true);
             } else {
                 const legacyDocId = `${profile.id}_${today}`;
@@ -53,7 +54,7 @@ export function useCheckin() {
                     const data = legacySnap.data();
                     setSelectedEmotionId(resolveEmotionId(data.mood));
                     setNote(data.note || '');
-                    setEnergy(data.energy || 5);
+                    setEnergy(normalizeEnergyValue(data.energy, 55));
                     setAlreadyCompleted(true);
                 }
             }

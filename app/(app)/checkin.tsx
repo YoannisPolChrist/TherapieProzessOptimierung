@@ -1,10 +1,11 @@
 import { View, Text, TextInput, ActivityIndicator, Platform } from 'react-native';
 import { PressableScale } from '../../components/ui/PressableScale';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, { Extrapolation, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { EMOTION_PRESETS, getEmotionLabel } from '../../constants/emotions';
+import { getCheckinTags, type CheckinTagId, describeEnergyBand } from '../../constants/checkin';
 import { useCheckin } from '../../hooks/firebase/useCheckin';
 import { useTheme } from '../../contexts/ThemeContext';
 import { MotiView } from 'moti';
@@ -14,7 +15,7 @@ import { speechRecognizer } from '../../utils/voice';
 import i18n from '../../utils/i18n';
 import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 
-const ENERGY_LEVELS = [
+/* const ENERGY_LEVELS = [
     { value: 1, title: 'Leer', hint: 'Heute braucht dein System viel Ruhe.', color: '#DC2626' },
     { value: 2, title: 'Sehr niedrig', hint: 'Gerade ist nur wenig Kraft da.', color: '#EA580C' },
     { value: 3, title: 'Erschöpft', hint: 'Es geht eher im Sparmodus.', color: '#F97316' },
@@ -25,7 +26,20 @@ const ENERGY_LEVELS = [
     { value: 8, title: 'Wach', hint: 'Du bist aktiv, präsent und ansprechbar.', color: '#14B8A6' },
     { value: 9, title: 'Kraftvoll', hint: 'Viel Antrieb ist gerade verfügbar.', color: '#0EA5E9' },
     { value: 10, title: 'Sprühend', hint: 'Sehr viel Energie ist da.', color: '#8B5CF6' },
-];
+]; */
+
+const TAG_EMOTION_MAP: Record<CheckinTagId, string> = {
+    exhausted: 'exhausted',
+    anxious: 'anxious',
+    calm: 'calm',
+    motivated: 'motivated',
+    sad: 'sad',
+    grateful: 'grateful',
+    overwhelmed: 'overwhelmed',
+    focused: 'focused',
+    lonely: 'lonely',
+    connected: 'connected',
+};
 
 export default function CheckinScreen() {
     const router = useRouter();
@@ -44,12 +58,14 @@ export default function CheckinScreen() {
 
     const [isListening, setIsListening] = useState(false);
     const [interimText, setInterimText] = useState('');
+    const [sliderWidth, setSliderWidth] = useState(0);
 
     const activeEmotion = EMOTION_PRESETS.find((emotion) => emotion.id === selectedEmotionId);
-    const activeEnergy = ENERGY_LEVELS.find((level) => level.value === energy) || ENERGY_LEVELS[4];
+    const energyDescriptor = useMemo(() => describeEnergyBand(energy, i18n.locale), [energy, i18n.locale]);
     const accentColor = activeEmotion?.color || '#2D666B';
-    const energyAccent = activeEmotion?.color || activeEnergy.color;
+    const energyAccent = activeEmotion?.color || energyDescriptor.color;
     const headerScrollDistance = isXs ? 108 : 128;
+    const quickTags = useMemo(() => getCheckinTags(i18n.locale), [i18n.locale]);
 
     const onScroll = useAnimatedScrollHandler({
         onScroll: (event) => {
@@ -57,14 +73,43 @@ export default function CheckinScreen() {
         },
     });
 
-    const headerAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: interpolate(scrollY.value, [0, headerScrollDistance * 0.5, headerScrollDistance], [1, 0.7, 0.45], Extrapolation.CLAMP),
-        transform: [
-            {
-                scale: interpolate(scrollY.value, [0, headerScrollDistance], [1, 0.96], Extrapolation.CLAMP),
-            },
-        ],
-    }));
+    const headerAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            opacity: interpolate(scrollY.value, [0, headerScrollDistance * 0.6, headerScrollDistance], [1, 0.5, 0], Extrapolation.CLAMP),
+            transform: [
+                {
+                    scale: interpolate(scrollY.value, [0, headerScrollDistance], [1, 0.94], Extrapolation.CLAMP),
+                },
+                {
+                    translateY: interpolate(scrollY.value, [0, headerScrollDistance], [0, -28], Extrapolation.CLAMP),
+                },
+            ],
+            marginBottom: interpolate(scrollY.value, [0, headerScrollDistance], [24, 8], Extrapolation.CLAMP),
+        };
+    });
+
+    const handleQuickTagPress = useCallback(
+        (tagId: CheckinTagId) => {
+            if (alreadyCompleted) return;
+            const emotionId = TAG_EMOTION_MAP[tagId];
+            if (!emotionId) return;
+            if (Platform.OS !== 'web') {
+                Haptics.selectionAsync().catch(() => undefined);
+            }
+            setSelectedEmotionId(emotionId);
+        },
+        [alreadyCompleted, setSelectedEmotionId]
+    );
+
+    const handleEnergyTouch = useCallback(
+        (locationX: number) => {
+            if (alreadyCompleted || sliderWidth === 0) return;
+            const ratio = Math.min(1, Math.max(0, locationX / sliderWidth));
+            const nextValue = Math.round(ratio * 99) + 1;
+            setEnergy(nextValue);
+        },
+        [alreadyCompleted, sliderWidth, setEnergy]
+    );
 
     const toggleListening = () => {
         if (isListening) {
@@ -385,18 +430,60 @@ export default function CheckinScreen() {
                         </View>
                     </MotiView>
 
+                    {quickTags.length > 0 ? (
+                        <MotiView from={{ opacity: 0, translateY: 16 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'spring', damping: 20, delay: 160 }}>
+                            <View style={{ backgroundColor: colors.surface, borderRadius: isSm ? 24 : 32, padding: compactCardPadding, marginBottom: 16, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.04)' : '#E7E0D4', shadowColor: isDark ? '#000' : '#182428', shadowOffset: { width: 0, height: 10 }, shadowOpacity: isDark ? 0.18 : 0.05, shadowRadius: 18, elevation: 4 }}>
+                                <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSubtle, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 6 }}>
+                                    {i18n.t('checkin.quick_tags_title', { defaultValue: 'Emotion Shortcuts' })}
+                                </Text>
+                                <Text style={{ fontSize: 14, color: colors.textSubtle, marginBottom: 16, fontWeight: '600' }}>
+                                    {i18n.t('checkin.quick_tags_hint', { defaultValue: 'Tap a word to preselect the matching mood.' })}
+                                </Text>
+                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                                    {quickTags.map((tag) => {
+                                        const emotionId = TAG_EMOTION_MAP[tag.id as CheckinTagId];
+                                        const isSelected = emotionId && selectedEmotionId === emotionId;
+                                        return (
+                                            <PressableScale
+                                                key={tag.id}
+                                                onPress={() => handleQuickTagPress(tag.id as CheckinTagId)}
+                                                disabled={alreadyCompleted || !emotionId}
+                                                intensity="subtle"
+                                                style={{
+                                                    flexDirection: 'row',
+                                                    alignItems: 'center',
+                                                    gap: 8,
+                                                    paddingHorizontal: 14,
+                                                    paddingVertical: 10,
+                                                    borderRadius: 999,
+                                                    borderWidth: 1,
+                                                    borderColor: isSelected ? tag.color : isDark ? 'rgba(255,255,255,0.08)' : '#E7E0D4',
+                                                    backgroundColor: isSelected ? `${tag.color}26` : isDark ? 'rgba(255,255,255,0.02)' : '#FFFFFF',
+                                                    opacity: alreadyCompleted ? 0.6 : 1,
+                                                }}
+                                            >
+                                                <Text style={{ fontSize: 16 }}>{tag.icon}</Text>
+                                                <Text style={{ fontWeight: '800', color: isSelected ? tag.color : colors.text }}>{tag.label}</Text>
+                                            </PressableScale>
+                                        );
+                                    })}
+                                </View>
+                            </View>
+                        </MotiView>
+                    ) : null}
+
                     <MotiView from={{ opacity: 0, translateY: 20 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'spring', damping: 20, delay: 200 }}>
                         <View style={{ backgroundColor: colors.surface, borderRadius: isSm ? 24 : 32, padding: compactCardPadding, marginBottom: 16, shadowColor: energyAccent, shadowOffset: { width: 0, height: 10 }, shadowOpacity: isDark ? 0.2 : 0.08, shadowRadius: 18, elevation: 5, borderWidth: 1, borderColor: activeEmotion ? `${activeEmotion.color}22` : 'transparent' }}>
                             <View style={{ flexDirection: isXs ? 'column' : 'row', justifyContent: 'space-between', alignItems: isXs ? 'stretch' : 'flex-start', gap: 12, marginBottom: 16 }}>
                                 <View style={{ flex: 1 }}>
                                     <Text style={{ fontSize: 13, fontWeight: '800', color: colors.textSubtle, letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8 }}>
-                                        Energielevel 1-10
+                                        Energielevel 1-100
                                     </Text>
                                     <Text style={{ fontSize: 22, fontWeight: '900', color: colors.text, marginBottom: 4 }}>
-                                        {activeEnergy.title}
+                                        {energyDescriptor.title}
                                     </Text>
                                     <Text style={{ fontSize: 14, lineHeight: 20, color: colors.textSubtle, fontWeight: '600' }}>
-                                        {activeEnergy.hint}
+                                        {energyDescriptor.hint}
                                     </Text>
                                     {activeEmotion ? (
                                         <View style={{ alignSelf: 'flex-start', marginTop: 10, backgroundColor: `${activeEmotion.color}18`, borderWidth: 1, borderColor: `${activeEmotion.color}33`, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 }}>
@@ -405,58 +492,31 @@ export default function CheckinScreen() {
                                     ) : null}
                                 </View>
 
-                                <LinearGradient colors={[activeEnergy.color, energyAccent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ minWidth: isXs ? 0 : 82, borderRadius: 24, paddingHorizontal: 14, paddingVertical: 12, alignItems: 'center', alignSelf: isXs ? 'flex-start' : 'auto' }}>
+                                <LinearGradient colors={[energyDescriptor.color, energyAccent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ minWidth: isXs ? 0 : 82, borderRadius: 24, paddingHorizontal: 14, paddingVertical: 12, alignItems: 'center', alignSelf: isXs ? 'flex-start' : 'auto' }}>
                                     <Sparkles size={16} color="#fff" />
                                     <Text style={{ color: '#fff', fontSize: 28, fontWeight: '900', lineHeight: 32 }}>{energy}</Text>
                                 </LinearGradient>
                             </View>
 
-                            <LinearGradient colors={isDark ? ['rgba(30,41,59,0.9)', 'rgba(15,23,42,0.8)'] : ['#F6EFE8', '#EEF4F3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: isSm ? 24 : 28, paddingHorizontal: isXs ? 12 : 16, paddingTop: 18, paddingBottom: 16, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.75)' }}>
-                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                                    <Text style={{ fontSize: 12, fontWeight: '800', color: colors.textSubtle, letterSpacing: 0.7, textTransform: 'uppercase' }}>Niedrig</Text>
-                                    <Text style={{ fontSize: 12, fontWeight: '800', color: colors.textSubtle, letterSpacing: 0.7, textTransform: 'uppercase' }}>Mittel</Text>
-                                    <Text style={{ fontSize: 12, fontWeight: '800', color: colors.textSubtle, letterSpacing: 0.7, textTransform: 'uppercase' }}>Hoch</Text>
+                            <LinearGradient colors={isDark ? ['rgba(30,41,59,0.9)', 'rgba(15,23,42,0.8)'] : ['#F6EFE8', '#EEF4F3']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: isSm ? 24 : 28, paddingHorizontal: isXs ? 12 : 16, paddingVertical: 18, borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.75)' }}>
+                                <View
+                                    style={{ height: 48, justifyContent: 'center' }}
+                                    onLayout={(event) => setSliderWidth(event.nativeEvent.layout.width)}
+                                    onStartShouldSetResponder={() => !alreadyCompleted}
+                                    onMoveShouldSetResponder={() => !alreadyCompleted}
+                                    onResponderGrant={(event) => handleEnergyTouch(event.nativeEvent.locationX)}
+                                    onResponderMove={(event) => handleEnergyTouch(event.nativeEvent.locationX)}
+                                    onResponderRelease={(event) => handleEnergyTouch(event.nativeEvent.locationX)}
+                                >
+                                    <View style={{ height: 12, borderRadius: 999, backgroundColor: isDark ? 'rgba(255,255,255,0.12)' : '#E2E8F0', overflow: 'hidden' }}>
+                                        <View style={{ width: `${energy}%`, height: '100%', borderRadius: 999, backgroundColor: energyDescriptor.color }} />
+                                    </View>
+                                    <View style={{ position: 'absolute', left: sliderWidth > 0 ? Math.min(sliderWidth - 18, Math.max(0, (energy / 100) * sliderWidth - 9)) : 0, width: 18, height: 18, borderRadius: 9, borderWidth: 3, borderColor: isDark ? '#0F172A' : '#FFFFFF', backgroundColor: energyDescriptor.color, shadowColor: energyDescriptor.color, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8 }} />
                                 </View>
-
-                                <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8, minHeight: 126 }}>
-                                    {ENERGY_LEVELS.map((level) => {
-                                        const isSelected = energy === level.value;
-                                        const barHeight = 28 + (level.value * 7);
-
-                                        return (
-                                            <PressableScale
-                                                key={level.value}
-                                                onPress={() => {
-                                                    if (!alreadyCompleted) {
-                                                        if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                                        setEnergy(level.value);
-                                                    }
-                                                }}
-                                                style={{ flex: 1, alignItems: 'center', opacity: alreadyCompleted ? (isSelected ? 1 : 0.45) : 1 }}
-                                            >
-                                                <View style={{ minHeight: 30, justifyContent: 'flex-start', alignItems: 'center', marginBottom: 8 }}>
-                                                    {isSelected ? (
-                                                        <View style={{ backgroundColor: level.color, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, shadowColor: level.color, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 10 }}>
-                                                            <Text style={{ color: '#fff', fontWeight: '900', fontSize: 12 }}>{level.value}</Text>
-                                                        </View>
-                                                    ) : null}
-                                                </View>
-
-                                                <View style={{ width: '100%', maxWidth: 28, height: barHeight, borderRadius: 999, justifyContent: 'flex-end', padding: 3, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.65)', borderWidth: 1, borderColor: isSelected ? level.color : (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)') }}>
-                                                    <LinearGradient colors={isSelected ? [level.color, activeEmotion?.color || '#2D666B'] : [level.color, `${level.color}BB`]} start={{ x: 0, y: 1 }} end={{ x: 0, y: 0 }} style={{ flex: 1, borderRadius: 999 }} />
-                                                </View>
-
-                                                <View style={{ marginTop: 10, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: isSelected ? level.color : (isDark ? 'rgba(255,255,255,0.07)' : '#FFFFFF') }}>
-                                                    <Text style={{ fontSize: 11, fontWeight: '900', color: isSelected ? '#fff' : colors.textSubtle }}>{level.value}</Text>
-                                                </View>
-                                            </PressableScale>
-                                        );
-                                    })}
-                                </View>
-
-                                <View style={{ flexDirection: isXs ? 'column' : 'row', justifyContent: 'space-between', marginTop: 14, gap: isXs ? 4 : 0 }}>
-                                    <Text style={{ color: colors.textSubtle, fontSize: 13, fontWeight: '700' }}>Erschöpft</Text>
-                                    <Text style={{ color: colors.textSubtle, fontSize: 13, fontWeight: '700' }}>Voller Energie</Text>
+                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 }}>
+                                    <Text style={{ color: colors.textSubtle, fontSize: 12, fontWeight: '800' }}>1</Text>
+                                    <Text style={{ color: colors.textSubtle, fontSize: 12, fontWeight: '800' }}>50</Text>
+                                    <Text style={{ color: colors.textSubtle, fontSize: 12, fontWeight: '800' }}>100</Text>
                                 </View>
                             </LinearGradient>
                         </View>

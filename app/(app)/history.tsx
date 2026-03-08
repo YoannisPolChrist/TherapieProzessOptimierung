@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Lock } from 'lucide-react-native';
 import { getEmotionByScore, getEmotionLabel } from '../../constants/emotions';
+import { describeEnergyBand, normalizeEnergyValue } from '../../constants/checkin';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatMoodScore, normalizeMoodToTen } from '../../utils/checkinMood';
@@ -160,6 +161,9 @@ export default function HistoryScreen() {
 
                             if (item.isCheckin) {
                                 const emotion = getEmotionByScore(normalizeMoodToTen(item.mood));
+                                const hasEnergy = item.energy !== undefined && item.energy !== null;
+                                const normalizedEnergyValue = hasEnergy ? normalizeEnergyValue(item.energy) : null;
+                                const energyBand = hasEnergy && normalizedEnergyValue !== null ? describeEnergyBand(normalizedEnergyValue, i18n.locale) : null;
                                 return (
                                     <View style={{ flexDirection: 'row', marginBottom: 12, gap: 12 }}>
                                         <View style={{ alignItems: 'center', width: 24 }}>
@@ -188,9 +192,9 @@ export default function HistoryScreen() {
                                                     </Text>
                                                 </View>
                                             </View>
-                                            {item.energy !== undefined && item.energy !== null && (
+                                            {hasEnergy && energyBand && normalizedEnergyValue !== null && (
                                                 <Text style={{ fontSize: 12, color: '#788E76', fontWeight: '700', marginTop: 10 }}>
-                                                    Energie {item.energy}/10
+                                                    Energie {normalizedEnergyValue}/100 · {energyBand.title}
                                                 </Text>
                                             )}
                                             {item.tags && item.tags.length > 0 && (

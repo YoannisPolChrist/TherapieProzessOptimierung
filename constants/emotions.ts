@@ -9,6 +9,7 @@ export const EMOTION_PRESETS = [
     { id: 'grateful', score: 8, emoji: '', color: '#22C55E', label: { de: 'Dankbar', en: 'Grateful', es: 'Agradecido', fr: 'Reconnaissant' } },
     { id: 'connected', score: 7, emoji: '', color: '#06B6D4', label: { de: 'Verbunden', en: 'Connected', es: 'Conectado', fr: 'Connecté' } },
     { id: 'content', score: 7, emoji: '', color: '#4ADE80', label: { de: 'Zufrieden', en: 'Content', es: 'Satisfecho', fr: 'Satisfait' } },
+    { id: 'focused', score: 7, emoji: '', color: '#4ADE80', label: { de: 'Fokussiert', en: 'Focused', es: 'Enfocado', fr: 'Concentré' } },
     { id: 'relieved', score: 7, emoji: '', color: '#84CC16', label: { de: 'Erleichtert', en: 'Relieved', es: 'Aliviado', fr: 'Soulagé' } },
     { id: 'calm', score: 6, emoji: '', color: '#A3E635', label: { de: 'Entspannt', en: 'Calm', es: 'Tranquilo', fr: 'Calme' } },
     { id: 'reflective', score: 6, emoji: '', color: '#2DD4BF', label: { de: 'Nachdenklich', en: 'Reflective', es: 'Reflexivo', fr: 'Pensif' } },

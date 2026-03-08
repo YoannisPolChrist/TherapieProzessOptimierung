@@ -1,5 +1,5 @@
 import React, { useState, useCallback, memo, useRef, useMemo, useEffect } from 'react';
-import { View, Text as RNText, TextInput, Alert, Platform, KeyboardTypeOptions, ActivityIndicator, Animated, StyleSheet, Modal, useWindowDimensions } from 'react-native';
+import { View, Text as RNText, TextInput, Alert, Platform, KeyboardTypeOptions, ActivityIndicator, Animated, StyleSheet, Modal, useWindowDimensions, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -1892,8 +1892,9 @@ export default function ExerciseBuilder({ initialTitle = '', initialCoverImage, 
             />
 
             {/* Discard Confirmation Modal */}
-            <Modal visible={showDiscardBanner} transparent animationType="fade">
+            <Modal visible={showDiscardBanner} transparent animationType="fade" onRequestClose={() => setShowDiscardBanner(false)}>
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 24 }}>
+                    <Pressable style={StyleSheet.absoluteFill} onPress={() => setShowDiscardBanner(false)} />
                     <MotiView
                         from={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}

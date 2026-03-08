@@ -245,16 +245,18 @@ export const resolveCheckinTags = (
     return resolved;
 };
 
-type EnergyPreset = {
-    value: number;
+type EnergyBand = {
+    min: number;
+    max: number;
     color: string;
     title: Record<LocaleCode, string>;
     hint: Record<LocaleCode, string>;
 };
 
-const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
+const ENERGY_BANDS: EnergyBand[] = [
     {
-        value: 1,
+        min: 1,
+        max: 10,
         color: '#DC2626',
         title: {
             de: 'Leer',
@@ -272,7 +274,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 2,
+        min: 11,
+        max: 20,
         color: '#EA580C',
         title: {
             de: 'Sehr niedrig',
@@ -290,7 +293,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 3,
+        min: 21,
+        max: 30,
         color: '#F97316',
         title: {
             de: 'Erschöpft',
@@ -308,7 +312,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 4,
+        min: 31,
+        max: 40,
         color: '#F59E0B',
         title: {
             de: 'Gebremst',
@@ -326,7 +331,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 5,
+        min: 41,
+        max: 50,
         color: '#EAB308',
         title: {
             de: 'Ausgeglichen',
@@ -344,7 +350,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 6,
+        min: 51,
+        max: 60,
         color: '#84CC16',
         title: {
             de: 'Stabil',
@@ -362,7 +369,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 7,
+        min: 61,
+        max: 70,
         color: '#22C55E',
         title: {
             de: 'Im Fluss',
@@ -380,7 +388,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 8,
+        min: 71,
+        max: 80,
         color: '#14B8A6',
         title: {
             de: 'Wach',
@@ -398,7 +407,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 9,
+        min: 81,
+        max: 90,
         color: '#0EA5E9',
         title: {
             de: 'Kraftvoll',
@@ -416,7 +426,8 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
         },
     },
     {
-        value: 10,
+        min: 91,
+        max: 100,
         color: '#8B5CF6',
         title: {
             de: 'Sprühend',
@@ -435,24 +446,36 @@ const ENERGY_LEVEL_PRESETS: EnergyPreset[] = [
     },
 ];
 
-export type LocalizedEnergyLevel = {
+const clampEnergy = (value: number) => Math.min(100, Math.max(1, Math.round(value)));
+
+export const normalizeEnergyValue = (value: unknown, fallback: number = 55): number => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric) || numeric <= 0) return fallback;
+    if (numeric <= 10) {
+        return clampEnergy((numeric / 10) * 100);
+    }
+    return clampEnergy(numeric);
+};
+
+export type LocalizedEnergyBand = {
     value: number;
     color: string;
     title: string;
     hint: string;
+    min: number;
+    max: number;
 };
 
-export const getEnergyLevels = (locale?: string): LocalizedEnergyLevel[] => {
+export const describeEnergyBand = (value: number, locale?: string): LocalizedEnergyBand => {
     const lang = normalizeLocale(locale);
-    return ENERGY_LEVEL_PRESETS.map((preset) => ({
-        value: preset.value,
-        color: preset.color,
-        title: preset.title[lang] ?? preset.title.de,
-        hint: preset.hint[lang] ?? preset.hint.de,
-    }));
-};
-
-export const getEnergyLevelByValue = (value: number, locale?: string): LocalizedEnergyLevel | null => {
-    const levels = getEnergyLevels(locale);
-    return levels.find((level) => level.value === value) ?? null;
+    const normalized = clampEnergy(value);
+    const band = ENERGY_BANDS.find((entry) => normalized >= entry.min && normalized <= entry.max) ?? ENERGY_BANDS[4];
+    return {
+        value: normalized,
+        color: band.color,
+        title: band.title[lang] ?? band.title.de,
+        hint: band.hint[lang] ?? band.hint.de,
+        min: band.min,
+        max: band.max,
+    };
 };

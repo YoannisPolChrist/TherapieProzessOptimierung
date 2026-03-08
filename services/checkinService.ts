@@ -14,7 +14,7 @@ export interface CheckinPayload {
     mood: number;
     note?: string;
     tags?: string[];
-    energy?: number; // 1-10
+    energy?: number; // 1-100
     duration?: number;
     date: string; // ISO date string "YYYY-MM-DD"
     slot?: 'morning' | 'evening';

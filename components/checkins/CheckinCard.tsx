@@ -3,11 +3,14 @@ import { Text, View } from 'react-native';
 import { MotiView } from 'moti';
 import { Activity, Gauge } from 'lucide-react-native';
 import { getEmotionByScore, getEmotionLabel } from '../../constants/emotions';
+import { describeEnergyBand, normalizeEnergyValue } from '../../constants/checkin';
 import { formatMoodScore, normalizeMoodToTen } from '../../utils/checkinMood';
 import i18n from '../../utils/i18n';
 
 export const CheckinCard = React.memo(({ checkin, formatTime }: { checkin: any, formatTime: (c: any) => string }) => {
     const activeEmotion = getEmotionByScore(normalizeMoodToTen(checkin.mood));
+    const normalizedEnergy = normalizeEnergyValue(checkin.energy);
+    const energyBand = describeEnergyBand(normalizedEnergy, i18n.locale);
 
     return (
         <MotiView
@@ -61,7 +64,7 @@ export const CheckinCard = React.memo(({ checkin, formatTime }: { checkin: any, 
                             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#EEF3EE', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10 }}>
                                 <Activity size={12} color="#788E76" />
                                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#788E76', marginLeft: 6 }}>
-                                    Energie {checkin.energy}/10
+                                    Energie {normalizedEnergy}/100 · {energyBand.title}
                                 </Text>
                             </View>
                         )}

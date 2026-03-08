@@ -51,7 +51,7 @@ export interface Checkin extends BaseRecord {
     timestamp: Timestamp | Date | any;
     mood: number;
     emotions: string[];
-    energy: string;
+    energy: number;
     sleep: string;
     activities: string[];
     triggers: string;

@@ -1,9 +1,9 @@
-import { View, Text, ActivityIndicator, Platform } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { View, Text, ActivityIndicator, Platform, ViewStyle } from 'react-native';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { useClientExercises } from '../../hooks/useClientExercises';
 import { useTheme } from '../../contexts/ThemeContext';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import i18n from '../../utils/i18n';
 import Animated, { useAnimatedScrollHandler, useSharedValue, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated';
 import { ChevronLeft, BookOpen, Clock3, CheckCircle2 } from 'lucide-react-native';
@@ -21,27 +21,40 @@ import { PressableScale } from '../../components/ui/PressableScale';
 
 type ExerciseFilter = 'all' | 'open' | 'completed';
 
+const parseExerciseFilter = (value: string | string[] | undefined): ExerciseFilter => {
+    const normalized = Array.isArray(value) ? value[0] : value;
+    if (normalized === 'all' || normalized === 'completed') {
+        return normalized;
+    }
+    return 'open';
+};
+
 export default function ExercisesOverview() {
     const { profile } = useAuth();
     const router = useRouter();
+    const { filter } = useLocalSearchParams<{ filter?: string | string[] }>();
     const { exercises, loading, fetchExercises } = useClientExercises(profile?.id);
     const { colors, isDark } = useTheme();
 
     const { isXs, isSm, isTablet, isDesktop, contentMaxWidth, gutter, sectionGap, headerTop } = useResponsiveLayout();
-    const contentWrapperStyle = contentMaxWidth
-        ? { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' as const }
-        : { width: '100%' as const };
+    const contentWrapperStyle: ViewStyle = contentMaxWidth
+        ? { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' }
+        : { width: '100%' };
 
     const openExercises = useMemo(() => exercises.filter(ex => !ex.completed), [exercises]);
     const completedExercises = useMemo(() => exercises.filter(ex => ex.completed), [exercises]);
-    const [activeFilter, setActiveFilter] = useState<ExerciseFilter>('open');
+    const [activeFilter, setActiveFilter] = useState<ExerciseFilter>(() => parseExerciseFilter(filter));
+
+    useEffect(() => {
+        setActiveFilter(parseExerciseFilter(filter));
+    }, [filter]);
 
     const visibleOpenExercises = activeFilter === 'completed' ? [] : openExercises;
     const visibleCompletedExercises = activeFilter === 'open' ? [] : completedExercises;
     const filterOptions: Array<{ key: ExerciseFilter; label: string; count: number }> = [
-        { key: 'all', label: 'Alle', count: exercises.length },
-        { key: 'open', label: 'Offen', count: openExercises.length },
-        { key: 'completed', label: 'Erledigt', count: completedExercises.length },
+        { key: 'all', label: i18n.t('dashboard.stats.total', { defaultValue: 'Gesamt' }), count: exercises.length },
+        { key: 'open', label: i18n.t('dashboard.stats.open', { defaultValue: 'Offen' }), count: openExercises.length },
+        { key: 'completed', label: i18n.t('dashboard.stats.completed', { defaultValue: 'Erledigt' }), count: completedExercises.length },
     ];
 
     const emptyFilterMessage =
@@ -63,8 +76,8 @@ export default function ExercisesOverview() {
     });
 
     const headerAnimatedStyle = useAnimatedStyle(() => {
-        const height = interpolate(scrollY.value, [0, 100], [Platform.OS === 'android' ? 120 : 130, Platform.OS === 'android' ? 80 : 90], Extrapolate.CLAMP);
-        const padding = interpolate(scrollY.value, [0, 100], [headerTop - 8, Platform.OS === 'android' ? 24 : 34], Extrapolate.CLAMP);
+        const height = interpolate(scrollY.value, [0, 120], [Platform.OS === 'android' ? 120 : 130, Platform.OS === 'android' ? 72 : 84], Extrapolate.CLAMP);
+        const padding = interpolate(scrollY.value, [0, 120], [headerTop - 8, Platform.OS === 'android' ? 20 : 28], Extrapolate.CLAMP);
         return {
             width: '100%',
             height,
@@ -84,6 +97,12 @@ export default function ExercisesOverview() {
             alignItems: isXs ? 'flex-start' as const : 'center' as const,
             justifyContent: 'space-between' as const,
             gap: isXs ? 12 : 0,
+            opacity: interpolate(scrollY.value, [0, 80, 140], [1, 0.6, 0], Extrapolate.CLAMP),
+            transform: [
+                {
+                    translateY: interpolate(scrollY.value, [0, 140], [0, -22], Extrapolate.CLAMP),
+                },
+            ],
         };
     });
 
@@ -91,11 +110,10 @@ export default function ExercisesOverview() {
         if (Platform.OS !== 'web') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
         }
-        const canGoBack = typeof router.canGoBack === 'function' ? router.canGoBack() : false;
-        if (canGoBack) {
+        if (typeof router.canGoBack === 'function' && router.canGoBack()) {
             router.back();
         } else {
-            router.replace('/(app)' as any);
+            router.push('/(app)' as any);
         }
     }, [router]);
 
@@ -193,7 +211,14 @@ export default function ExercisesOverview() {
                             }}
                             withHaptics={false}
                             intensity="medium"
-                            style={{ flex: 1 }}
+                            style={[
+                                { flex: 1 },
+                                activeFilter === 'all' && {
+                                    borderRadius: 28,
+                                    borderWidth: 2,
+                                    borderColor: colors.primary,
+                                },
+                            ]}
                         >
                             <ClientMetricCard
                                 icon={BookOpen}
@@ -214,7 +239,14 @@ export default function ExercisesOverview() {
                             }}
                             withHaptics={false}
                             intensity="medium"
-                            style={{ flex: 1 }}
+                            style={[
+                                { flex: 1 },
+                                activeFilter === 'open' && {
+                                    borderRadius: 28,
+                                    borderWidth: 2,
+                                    borderColor: colors.primary,
+                                },
+                            ]}
                         >
                             <ClientMetricCard
                                 icon={Clock3}
@@ -235,7 +267,14 @@ export default function ExercisesOverview() {
                             }}
                             withHaptics={false}
                             intensity="medium"
-                            style={{ flex: 1 }}
+                            style={[
+                                { flex: 1 },
+                                activeFilter === 'completed' && {
+                                    borderRadius: 28,
+                                    borderWidth: 2,
+                                    borderColor: colors.primary,
+                                },
+                            ]}
                         >
                             <ClientMetricCard
                                 icon={CheckCircle2}

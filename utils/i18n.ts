@@ -136,6 +136,8 @@ const translations = {
             error_save: "Could not save check-in. You might lack permissions or have a weak internet connection.",
             moods: ["Awful", "Bad", "Not Good", "Neutral", "Okay", "Good", "Very Good", "Great", "Awesome", "Fantastic"],
             tags: ["Exhausted", "Anxious", "Calm", "Motivated", "Sad", "Grateful", "Overwhelmed", "Focused", "Lonely", "Connected"],
+            quick_tags_title: "Emotion shortcuts",
+            quick_tags_hint: "Tap a word to preselect the matching mood.",
             energy_levels: [
                 { title: "Empty", hint: "Your system needs deep rest today." },
                 { title: "Very low", hint: "Only a little energy is available." },
@@ -670,6 +672,8 @@ const translations = {
             error_save: "Check-in konnte nicht gespeichert werden. Eventuell fehlen Firestore-Rechte oder die Internetverbindung ist schwach.",
             moods: ["Sehr schlecht", "Schlecht", "Nicht gut", "Neutral", "Okay", "Gut", "Sehr gut", "Toll", "Großartig", "Fantastisch"],
             tags: ["Erschöpft", "Ängstlich", "Ruhig", "Motiviert", "Traurig", "Dankbar", "Überfordert", "Fokussiert", "Einsam", "Verbunden"],
+            quick_tags_title: "Emotion Schnellwahl",
+            quick_tags_hint: "Tippe auf ein Wort, um die passende Stimmung vorab zu setzen.",
             note_placeholder: "Notizen zum heutigen Tag (optional)...",
             completed: "Check-in Erledigt"
         },
@@ -1185,6 +1189,8 @@ const translations = {
             error_save: "Échec de l'enregistrement. Vérifiez votre connexion internet.",
             moods: ["Très mauvais", "Mauvais", "Pas bien", "Neutre", "Correct", "Bien", "Très bien", "Super", "Génial", "Fantastique"],
             tags: ["Épuisé", "Anxieux", "Calme", "Motivé", "Triste", "Reconnaissant", "Débordé", "Concentré", "Seul", "Connecté"],
+            quick_tags_title: "Raccourcis d'émotion",
+            quick_tags_hint: "Touchez un mot pour présélectionner l'humeur correspondante.",
             note_placeholder: "Notes sur la journée (facultatif)...",
             completed: "Bilan Terminé"
         },
@@ -1700,6 +1706,8 @@ const translations = {
             error_save: "No se pudo guardar el registro. Verifique su conexión de red.",
             moods: ["Muy mal", "Mal", "No tan bien", "Neutral", "Bien", "Muy bien", "Estupendo", "Magnífico", "Genial", "Fantástico"],
             tags: ["Agotado", "Ansioso", "Tranquilo", "Motivado", "Triste", "Agradecido", "Abrumado", "Concentrado", "Solo", "Conectado"],
+            quick_tags_title: "Atajos de emoción",
+            quick_tags_hint: "Toca una palabra para preseleccionar el estado de ánimo correspondiente.",
             note_placeholder: "Notas de hoy (opcional)...",
             completed: "Registro Completado"
         },
@@ -2215,6 +2223,8 @@ const translations = {
             error_save: "Impossibile salvare il check-in. Verifica la tua connessione internet.",
             moods: ["Pessimo", "Male", "Non bene", "Neutrale", "Ok", "Bene", "Molto bene", "Fantastico", "Superbo", "Meraviglioso"],
             tags: ["Esausto", "Ansioso", "Calmo", "Motivato", "Triste", "Grato", "Oppresso", "Concentrato", "Solo", "Connesso"],
+            quick_tags_title: "Scorciatoie emotive",
+            quick_tags_hint: "Tocca una parola per preselezionare l'emozione corrispondente.",
             note_placeholder: "Note di oggi (facoltativo)...",
             completed: "Check-in Completato",
             duration: {

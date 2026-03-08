@@ -1,0 +1,51 @@
+{
+  "id": "71d4db0d-97a7-46cf-a922-fd20c59c987d",
+  "status": "ERRORED",
+  "platform": "ANDROID",
+  "error": {
+    "errorCode": "EAS_BUILD_UNKNOWN_GRADLE_ERROR",
+    "message": "Gradle build failed with unknown error. See logs for the \"Run gradlew\" phase for more information."
+  },
+  "artifacts": {},
+  "fingerprint": {
+    "id": "019cc64c-049d-793b-a62a-5fdb0fb9aa04",
+    "hash": "c14963b1ad8a17cdebaee66f8ba3d0b763ea8be2"
+  },
+  "initiatingActor": {
+    "id": "0f598c0f-f3df-48e7-b15c-f58c35283832",
+    "displayName": "jhnnschrist"
+  },
+  "logFiles": [
+    "https://job-logs.eascdn.net/production/71d4db0d-97a7-46cf-a922-fd20c59c987d/1772853396827-77cad66c-4d5e-4932-a455-252a70492865.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T035201Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=000b4c0a7e344c920d8476bf0dd49c87c2a9d6329b96f26113b26587696222d3150baea29c2e98e3cd7201569ce7dc75a2b12259f0acef8db6be04f18bdcc6f170a61106fe971d75cba138aa1f734f95bf4f7d6af16c2270c51ffa1d6144867b034446fc1e2e4d6506fe1f146b5c7904d9b5da03cc0ae0ade0247d94fda7a146b1d88eda27113d72bac6f8e4829b9d2b6921d176f856b3f6ec1b580a786d7390083dfeac49f14c9d50eff7eac6ac5f13f82c03de6c0f360e81213da25d92f6a7526ced64891b56a334585a74a6c9f90c121e9b26f67a2e0800e9631ac57a06eaeafc0ad5273a4292fd093df27abea8560f6061f39c3d2d65994a4367db5aed9d",
+    "https://job-logs.eascdn.net/production/71d4db0d-97a7-46cf-a922-fd20c59c987d/1772853403556-55e44059-436b-43b7-beb2-6d6ee7492079.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T035201Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=54ac9039188e956d787a8fdc634e1930a208660775e70592f270b389c7563e3e4de54ec33e5b20f289d38f926a821c0dd4f5e4bc43d6e6a73462fc36b2347f9fecb9713c06b9d183721d634a2c28c60610ae34b99ed7d3931fad8f51430184803c899d5ae1f5a2018421f2a55bc7df48953154ce53bb7c2d3cb2eacebc3f62d512bfb63e61acc733e939aa3c1be967b07497262e72d759ca9b3c02ab3e053859bb69d07683b9abb8a489b53858293dbd616f7703337672833ca804df950ed9e6b72429faf285ed462b1c5d16070654682c188c448bf5057380ad6801b611b4309ac28f4226a421341690a0e5a32140df6bffe13de0116deda5185ea0398a12dc",
+    "https://job-logs.eascdn.net/production/71d4db0d-97a7-46cf-a922-fd20c59c987d/1772853403804-7932a0ca-6508-4a6f-891f-d0e80ed5ab82.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T035201Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=4ac2cafc2bb6c7b22a87ca0ec008bac8180a9d229e5c97539e0f84d2454175600a8c405905f3a36d0434eefbb8a8d97874eb62ec2f96723a7b7551dfa33b7d0fb09a27ae0b59ede3b573eb3d1a65a79ff0d95733ddbabd265138593caffca68a09e98e02333c8fc87fc5b799b4297602a54889bcca1237b5b57293b6ca29e9b6b37442f1d5e3a77926bb89be8c2a4f5f7f8239d34072ffbaa11f5d5735b89ed0d42cbb47e59bd9da56ea277c02ec53efcf037687e396387f9475d46d9198d806422bd742fc5b3a2f68ec9398120cf48213d44e1edc5da6af463fe20b1d0e5c5824a872671f9603bcc96484588936cc24401a206ec1d6fdaa08dce77bd965fb04",
+    "https://job-logs.eascdn.net/production/71d4db0d-97a7-46cf-a922-fd20c59c987d/1772853404009-27ca4bbd-dd21-47c7-a5f3-5e27b62b811f.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260307%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260307T035201Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=84d28c121d3fbeec10a731d0a69ff98aa928244f5a327d5dbb8fd3b1934abcedb3ce12e7a5542ddc53d99e80369047992d9ef921e20622523a1813942a6d12e1d5512b64cecaaeb4d59345e874ac4110b29d061453422c6d7ed5c9c1ebac9dc3007cccb5b8352c465ce036245263667df7767b81b7d4976069e1c7bf1ed9b9901c534013cea0acd40fb428440850409f8764e6184fcbc6f33c7022d395a634b12eb7c640a225ea7193d97051a9a1939dcdb2d2cde5c2cb0fb32958fc6b111bbab9ab832418cc39a8595e255acc708527a5d02c87a55826ecba22e276e7f225b85ea51bbb27925aa3f9b984f16cdbc9c63ea6ecedfd6e7a24a0604748923af849"
+  ],
+  "project": {
+    "id": "5e4f2bb0-ee84-4751-bfb1-a149335020e5",
+    "name": "TherapyClientApp",
+    "slug": "TherapyClientApp",
+    "ownerAccount": {
+      "id": "e1953473-f089-468d-95fa-e6bf6cece76e",
+      "name": "jhnnschrist"
+    }
+  },
+  "distribution": "STORE",
+  "buildProfile": "preview",
+  "sdkVersion": "54.0.0",
+  "appVersion": "1.0.0",
+  "appBuildVersion": "1",
+  "gitCommitHash": "a5d37476d423d3df128db00b26bf962633823add",
+  "gitCommitMessage": "Update Firebase hosting cache after deploy",
+  "priority": "NORMAL",
+  "createdAt": "2026-03-07T03:16:36.575Z",
+  "updatedAt": "2026-03-07T03:21:33.381Z",
+  "completedAt": "2026-03-07T03:21:26.952Z",
+  "expirationDate": "2026-04-06T03:16:36.625Z",
+  "isForIosSimulator": false,
+  "metrics": {
+    "buildWaitTime": 151,
+    "buildQueueTime": 45587,
+    "buildDuration": 244272
+  }
+}
