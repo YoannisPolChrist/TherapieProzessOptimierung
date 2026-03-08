@@ -132,18 +132,7 @@ export default function ClientView() {
     if (!clientId) return;
     setLoading(true);
     try {
-      const [clientPayload, exercisesSnap, checkinsSnap] = await Promise.all([
-        ClientRepository.findById(clientId),
-        getDocs(query(collection(db, "exercises"), where("clientId", "==", clientId))),
-        getDocs(
-          query(
-            collection(db, "checkins"),
-            where("uid", "==", clientId),
-            orderBy("date", "desc"),
-            limit(24)
-          )
-        ),
-      ]);
+      const clientPayload = await ClientRepository.findById(clientId);
 
       if (clientPayload) {
         setClient(clientPayload);
@@ -151,22 +140,40 @@ export default function ClientView() {
       } else {
         setClient(null);
         setNextAppointment("");
+        return; // No need to fetch others if client doesn't exist
       }
 
-      const exerciseList = exercisesSnap.docs
-        .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as any))
-        .filter((exercise) => !exercise.archived);
-      const completedCount = exerciseList.filter((exercise) => exercise.completed).length;
-      setExerciseStats({ total: exerciseList.length, completed: completedCount });
+      // Fetch exercises and checkins independently to avoid full crash on missing indexes
+      try {
+        const exercisesSnap = await getDocs(query(collection(db, "exercises"), where("clientId", "==", clientId)));
+        const exerciseList = exercisesSnap.docs
+          .map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as any))
+          .filter((exercise) => !exercise.archived);
+        const completedCount = exerciseList.filter((exercise) => exercise.completed).length;
+        setExerciseStats({ total: exerciseList.length, completed: completedCount });
+      } catch (exErr) {
+        console.error("Error fetching exercises:", exErr);
+      }
 
-      const checkinList = checkinsSnap.docs
-        .map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as any) }))
-        .sort((left, right) => {
-          const leftDate = parseDate(left.createdAt ?? left.date)?.getTime() ?? 0;
-          const rightDate = parseDate(right.createdAt ?? right.date)?.getTime() ?? 0;
-          return rightDate - leftDate;
-        });
-      setCheckins(checkinList);
+      try {
+        // Removed orderBy("date", "desc") and limit(24) to avoid requiring a composite index,
+        // which may cause the entire page load to fail if not created in Firebase Console.
+        const checkinsSnap = await getDocs(
+          query(collection(db, "checkins"), where("uid", "==", clientId))
+        );
+        const checkinList = checkinsSnap.docs
+          .map((docSnap) => ({ id: docSnap.id, ...(docSnap.data() as any) }))
+          .sort((left, right) => {
+            const leftDate = parseDate(left.createdAt ?? left.date)?.getTime() ?? 0;
+            const rightDate = parseDate(right.createdAt ?? right.date)?.getTime() ?? 0;
+            return rightDate - leftDate;
+          })
+          .slice(0, 24); // Limit on client side instead
+        setCheckins(checkinList);
+      } catch (chkErr) {
+        console.error("Error fetching checkins:", chkErr);
+      }
+
     } catch (error) {
       console.error("Error fetching client data", error);
     } finally {
