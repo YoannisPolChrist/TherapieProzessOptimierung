@@ -53,10 +53,10 @@ type DateLike =
   | number
   | Date
   | {
-      toDate?: () => Date;
-      seconds?: number;
-      nanoseconds?: number;
-    };
+    toDate?: () => Date;
+    seconds?: number;
+    nanoseconds?: number;
+  };
 
 const PETROL = "#2D666B";
 const GOLD = "#B08C57";
@@ -217,14 +217,6 @@ export default function ClientView() {
     }
   };
 
-  if (loading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-[#F7F4EE]">
-        <ActivityIndicator size="large" color={PETROL} />
-      </View>
-    );
-  }
-
   const clientName = useMemo(() => {
     if (client?.firstName) {
       return `${client.firstName} ${client.lastName ?? ""}`.trim();
@@ -295,11 +287,11 @@ export default function ClientView() {
         hint:
           exerciseStats.total > 0
             ? i18n.t("therapist.patient.stats.adherence_hint", {
-                defaultValue: `${exerciseStats.completed}/${exerciseStats.total} erledigt`,
-              })
+              defaultValue: `${exerciseStats.completed}/${exerciseStats.total} erledigt`,
+            })
             : i18n.t("therapist.patient.stats.empty_hint", {
-                defaultValue: "Noch keine Übungen zugewiesen",
-              }),
+              defaultValue: "Noch keine Übungen zugewiesen",
+            }),
         accent: PETROL,
         progress: exerciseStats.total > 0 ? completionRate / 100 : 0,
       },
@@ -310,8 +302,8 @@ export default function ClientView() {
         hint:
           averageMood !== null
             ? i18n.t("therapist.patient.stats.mood_hint", {
-                defaultValue: "Durchschnitt der letzten Check-ins",
-              })
+              defaultValue: "Durchschnitt der letzten Check-ins",
+            })
             : i18n.t("therapist.patient.stats.mood_empty", { defaultValue: "Keine Check-ins vorhanden" }),
         accent: GOLD,
       },
@@ -422,6 +414,14 @@ export default function ClientView() {
     ],
     [client, locale, fallbackLabel]
   );
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-[#F7F4EE]">
+        <ActivityIndicator size="large" color={PETROL} />
+      </View>
+    );
+  }
 
   if (!client) {
     return (
@@ -555,17 +555,15 @@ export default function ClientView() {
                     <Text className="text-white/80 font-semibold text-sm">
                       {i18n.t("therapist.patient.hero.last_seen", {
                         value: formatDateTime(lastCheckinDate ?? undefined, locale) ?? fallbackLabel,
-                        defaultValue: `Zuletzt aktiv ${
-                          formatDateTime(lastCheckinDate ?? undefined, locale) ?? fallbackLabel
-                        }`,
+                        defaultValue: `Zuletzt aktiv ${formatDateTime(lastCheckinDate ?? undefined, locale) ?? fallbackLabel
+                          }`,
                       })}
                     </Text>
                     <Text className="text-white/60 font-semibold text-sm">
                       {i18n.t("therapist.patient.hero.member_since", {
                         value: formatDate((client as any)?.createdAt, locale) ?? fallbackLabel,
-                        defaultValue: `Betreuung seit ${
-                          formatDate((client as any)?.createdAt, locale) ?? fallbackLabel
-                        }`,
+                        defaultValue: `Betreuung seit ${formatDate((client as any)?.createdAt, locale) ?? fallbackLabel
+                          }`,
                       })}
                     </Text>
                   </View>

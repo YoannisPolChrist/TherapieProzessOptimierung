@@ -17,7 +17,7 @@ const WebHoverCard: React.FC<{ children: React.ReactNode; themeColor: string }> 
         whileHover={{ scale: 1.03, y: -4, boxShadow: `0 20px 50px ${themeColor}36` }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 340, damping: 24 }}
-        style={{ cursor: "pointer" }}
+        style={{ cursor: "pointer", borderRadius: 26 }}
       >
         {children}
       </motion.div>

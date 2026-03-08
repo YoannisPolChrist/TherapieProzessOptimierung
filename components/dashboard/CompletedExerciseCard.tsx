@@ -15,10 +15,10 @@ const WebHoverCard: React.FC<{ children: React.ReactNode }> = Platform.OS === 'w
     const { motion } = require('motion/react');
     return (
       <motion.div
-        whileHover={{ scale: 1.015, y: -2, opacity: 0.95 }}
+        whileHover={{ scale: 1.02, y: -4, boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}
         whileTap={{ scale: 0.98 }}
-        transition={{ type: 'spring', stiffness: 340, damping: 26 }}
-        style={{ cursor: 'pointer' }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+        style={{ cursor: 'pointer', borderRadius: 26 }}
       >
         {children}
       </motion.div>

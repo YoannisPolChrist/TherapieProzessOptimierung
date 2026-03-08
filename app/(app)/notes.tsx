@@ -624,14 +624,14 @@ export default function ClientNotesScreen() {
         try {
             const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (!perm.granted) {
-            setToast({
-                visible: true,
-                message: i18n.t('notes.toast.permission_title', { defaultValue: 'Berechtigung' }),
-                subMessage: i18n.t('notes.toast.permission_body', { defaultValue: 'Galerie-Zugriff wird benötigt.' }),
-                type: 'warning'
-            });
-            return;
-        }
+                setToast({
+                    visible: true,
+                    message: i18n.t('notes.toast.permission_title', { defaultValue: 'Berechtigung' }),
+                    subMessage: i18n.t('notes.toast.permission_body', { defaultValue: 'Galerie-Zugriff wird benötigt.' }),
+                    type: 'warning'
+                });
+                return;
+            }
             const result = await ImagePicker.launchImageLibraryAsync({
                 mediaTypes: ['images'],
                 allowsEditing: true,
@@ -943,203 +943,209 @@ export default function ClientNotesScreen() {
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ paddingBottom: 120 }}
             >
-            {/* Header */}
-            <MotiView
-                from={{ opacity: 0, translateY: -40 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{ type: 'timing', duration: 400, delay: 50 }}
-                style={{ zIndex: 10 }}
-            >
-                <View className="bg-[#2D666B] pb-8 px-6 pt-16 rounded-b-[40px] shadow-lg flex-col overflow-hidden relative">
-                    <DarkAmbientOrbs />
-                    <View className="flex-row items-center justify-between mb-4 z-10">
-                        <PressableScale onPress={() => router.back()} className="bg-white/20 px-4 py-2.5 rounded-2xl backdrop-blur-md flex-row items-center">
-                            <ArrowLeft size={18} color="white" style={{ marginRight: 6 }} />
-                            <Text className="text-white font-bold">{i18n.t('exercise.back')}</Text>
-                        </PressableScale>
-                        <View style={{ flex: 1, marginHorizontal: 16 }}>
-                            <Text className="text-[22px] font-black text-white text-center tracking-tight" numberOfLines={1}>
-                                {i18n.t('notes.journal_title', { defaultValue: 'Mein Tagebuch' })}
-                            </Text>
-                            <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 13, fontWeight: '700', textAlign: 'center', marginTop: 4 }}>
-                                {filteredNotes.length} sichtbar{lastUpdatedNote ? ` • zuletzt ${formatDateTime(lastUpdatedNote.updatedAt || lastUpdatedNote.createdAt)}` : ''}
-                            </Text>
+                {/* Header */}
+                <MotiView
+                    from={{ opacity: 0, translateY: -40 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ type: 'timing', duration: 400, delay: 50 }}
+                    style={{ zIndex: 10 }}
+                >
+                    <View className="bg-[#2D666B] pb-8 px-6 pt-16 rounded-b-[40px] shadow-lg flex-col overflow-hidden relative">
+                        <DarkAmbientOrbs />
+                        <View className="flex-row items-center justify-between mb-4 z-10">
+                            <PressableScale onPress={() => router.back()} className="bg-white/20 px-4 py-2.5 rounded-2xl backdrop-blur-md flex-row items-center">
+                                <ArrowLeft size={18} color="white" style={{ marginRight: 6 }} />
+                                <Text className="text-white font-bold">{i18n.t('exercise.back')}</Text>
+                            </PressableScale>
+                            <View style={{ flex: 1, marginHorizontal: 16 }}>
+                                <Text className="text-[22px] font-black text-white text-center tracking-tight" numberOfLines={1}>
+                                    {i18n.t('notes.journal_title', { defaultValue: 'Mein Tagebuch' })}
+                                </Text>
+                                <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 13, fontWeight: '700', textAlign: 'center', marginTop: 4 }}>
+                                    {filteredNotes.length} sichtbar{lastUpdatedNote ? ` • zuletzt ${formatDateTime(lastUpdatedNote.updatedAt || lastUpdatedNote.createdAt)}` : ''}
+                                </Text>
+                            </View>
+                            <PressableScale onPress={openCreateModal} className="bg-white px-4 py-2.5 rounded-2xl flex-row items-center shadow-sm">
+                                <Plus size={18} color="#2D666B" style={{ marginRight: 4 }} />
+                                <Text className="text-[#2D666B] font-bold">{i18n.t('notes.actions.new_note', { defaultValue: 'Neue Notiz' })}</Text>
+                            </PressableScale>
                         </View>
-                        <PressableScale onPress={openCreateModal} className="bg-white px-4 py-2.5 rounded-2xl flex-row items-center shadow-sm">
-                            <Plus size={18} color="#2D666B" style={{ marginRight: 4 }} />
-                            <Text className="text-[#2D666B] font-bold">{i18n.t('notes.actions.new_note', { defaultValue: 'Neue Notiz' })}</Text>
-                        </PressableScale>
-                    </View>
 
-                    {/* Filter Chips */}
-                    {notes.length > 0 ? (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 12, gap: 10 }} style={{ zIndex: 10 }}>
-                            <PressableScale onPress={() => setFilter('all')} style={{ backgroundColor: filter === 'all' ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16 }}>
-                                <Text style={{ color: filter === 'all' ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>
-                                    {i18n.t('notes.filters.all', { defaultValue: 'Alle Notizen' })}
-                                </Text>
-                            </PressableScale>
-                            <PressableScale onPress={() => setFilter('mine')} style={{ backgroundColor: filter === 'mine' ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16 }}>
-                                <Text style={{ color: filter === 'mine' ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>
-                                    {i18n.t('notes.filters.mine', { defaultValue: 'Meine Privaten' })}
-                                </Text>
-                            </PressableScale>
-                            <PressableScale onPress={() => setFilter('therapist')} style={{ backgroundColor: filter === 'therapist' ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16 }}>
-                                <Text style={{ color: filter === 'therapist' ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>
-                                    {i18n.t('notes.filters.therapist', { defaultValue: 'Vom Therapeut' })}
-                                </Text>
-                            </PressableScale>
-                        </ScrollView>
-                    ) : null}
-
-                    {notes.length > 0 ? (
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8, gap: 8 }} style={{ zIndex: 10 }}>
-                            <PressableScale onPress={() => setSortOrder('latest')} style={{ backgroundColor: sortOrder === 'latest' ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: sortOrder === 'latest' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.14)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 }}>
-                                <Text style={{ color: 'white', fontWeight: '700', fontSize: 12 }}>
-                                    {i18n.t('notes.sort.latest', { defaultValue: 'Neueste zuerst' })}
-                                </Text>
-                            </PressableScale>
-                            <PressableScale onPress={() => setSortOrder('oldest')} style={{ backgroundColor: sortOrder === 'oldest' ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: sortOrder === 'oldest' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.14)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 }}>
-                                <Text style={{ color: 'white', fontWeight: '700', fontSize: 12 }}>
-                                    {i18n.t('notes.sort.oldest', { defaultValue: 'Aelteste zuerst' })}
-                                </Text>
-                            </PressableScale>
-                        </ScrollView>
-                    ) : null}
-
-                    {/* Search */}
-                    {notes.length > 0 ? (
-                        <View style={{ marginTop: 6, zIndex: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, ...(Platform.OS === 'web' ? { backdropFilter: 'blur(10px)' } : {}) } as any}>
-                            <Search size={18} color="rgba(255,255,255,0.7)" />
-                            <TextInput
-                                value={search}
-                                onChangeText={setSearch}
-                                placeholder={i18n.t('notes.search.placeholder', { defaultValue: 'Titel oder Inhalt durchsuchen...' })}
-                                placeholderTextColor="rgba(255,255,255,0.5)"
-                                style={{ flex: 1, marginLeft: 10, color: 'white', fontSize: 15, fontWeight: '600' } as any}
-                            />
-                            {search.length > 0 ? (
-                                <PressableScale
-                                    accessibilityRole="button"
-                                    accessibilityLabel={i18n.t('notes.search.clear', { defaultValue: 'Suche leeren' })}
-                                    onPress={() => setSearch('')}
-                                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                                >
-                                    <X size={18} color="rgba(255,255,255,0.7)" />
+                        {/* Filter Chips */}
+                        {notes.length > 0 ? (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: 12, gap: 10 }} style={{ zIndex: 10 }}>
+                                <PressableScale onPress={() => setFilter('all')} style={{ backgroundColor: filter === 'all' ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16 }}>
+                                    <Text style={{ color: filter === 'all' ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>
+                                        {i18n.t('notes.filters.all', { defaultValue: 'Alle Notizen' })}
+                                    </Text>
                                 </PressableScale>
-                            ) : null}
-                        </View>
-                    ) : null}
-                </View>
-            </MotiView>
+                                <PressableScale onPress={() => setFilter('mine')} style={{ backgroundColor: filter === 'mine' ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16 }}>
+                                    <Text style={{ color: filter === 'mine' ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>
+                                        {i18n.t('notes.filters.mine', { defaultValue: 'Meine Privaten' })}
+                                    </Text>
+                                </PressableScale>
+                                <PressableScale onPress={() => setFilter('therapist')} style={{ backgroundColor: filter === 'therapist' ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 16 }}>
+                                    <Text style={{ color: filter === 'therapist' ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>
+                                        {i18n.t('notes.filters.therapist', { defaultValue: 'Vom Therapeut' })}
+                                    </Text>
+                                </PressableScale>
+                            </ScrollView>
+                        ) : null}
 
-            {!loading ? (
-                <View style={{ paddingHorizontal: 24, paddingTop: 20, width: '100%', maxWidth: 960, alignSelf: 'center' }}>
-                    <View style={{ flexDirection: width > 768 ? 'row' : 'column', gap: 12, marginBottom: 20 }}>
-                        <ClientMetricCard
-                            icon={Edit3}
-                            label={i18n.t('notes.stats.total_label', { defaultValue: 'Journal entries' })}
-                            value={String(noteStats.total)}
-                hint={i18n.t('notes.stats.total_hint', { defaultValue: 'Alle sichtbaren Einträge in deinem Journal.' })}
-                            tone="primary"
-                        />
-                        <ClientMetricCard
-                            icon={Lock}
-                label={i18n.t('notes.stats.private_label', { defaultValue: 'Private Einträge' })}
-                            value={String(noteStats.mine)}
-                hint={i18n.t('notes.stats.private_hint', { defaultValue: 'Notizen nur für dich und deine persönliche Reflexion.' })}
-                            tone="secondary"
-                        />
-                        <ClientMetricCard
-                            icon={UserSquare2}
-                            label={i18n.t('notes.stats.shared_label', { defaultValue: 'Vom Therapeut' })}
-                            value={String(noteStats.therapist)}
-                            hint={i18n.t('notes.stats.shared_hint', { defaultValue: 'Freigegebene Notizen aus der therapeutischen Arbeit.' })}
-                            tone="success"
-                        />
+                        {notes.length > 0 ? (
+                            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8, gap: 8 }} style={{ zIndex: 10 }}>
+                                <PressableScale onPress={() => setSortOrder('latest')} style={{ backgroundColor: sortOrder === 'latest' ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: sortOrder === 'latest' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.14)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 }}>
+                                    <Text style={{ color: 'white', fontWeight: '700', fontSize: 12 }}>
+                                        {i18n.t('notes.sort.latest', { defaultValue: 'Neueste zuerst' })}
+                                    </Text>
+                                </PressableScale>
+                                <PressableScale onPress={() => setSortOrder('oldest')} style={{ backgroundColor: sortOrder === 'oldest' ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: sortOrder === 'oldest' ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.14)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 }}>
+                                    <Text style={{ color: 'white', fontWeight: '700', fontSize: 12 }}>
+                                        {i18n.t('notes.sort.oldest', { defaultValue: 'Aelteste zuerst' })}
+                                    </Text>
+                                </PressableScale>
+                            </ScrollView>
+                        ) : null}
+
+                        {/* Search */}
+                        {notes.length > 0 ? (
+                            <View style={{ marginTop: 6, zIndex: 10, flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, ...(Platform.OS === 'web' ? { backdropFilter: 'blur(10px)' } : {}) } as any}>
+                                <Search size={18} color="rgba(255,255,255,0.7)" />
+                                <TextInput
+                                    value={search}
+                                    onChangeText={setSearch}
+                                    placeholder={i18n.t('notes.search.placeholder', { defaultValue: 'Titel oder Inhalt durchsuchen...' })}
+                                    placeholderTextColor="rgba(255,255,255,0.5)"
+                                    style={{ flex: 1, marginLeft: 10, color: 'white', fontSize: 15, fontWeight: '600' } as any}
+                                />
+                                {search.length > 0 ? (
+                                    <PressableScale
+                                        accessibilityRole="button"
+                                        accessibilityLabel={i18n.t('notes.search.clear', { defaultValue: 'Suche leeren' })}
+                                        onPress={() => setSearch('')}
+                                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                                    >
+                                        <X size={18} color="rgba(255,255,255,0.7)" />
+                                    </PressableScale>
+                                ) : null}
+                            </View>
+                        ) : null}
                     </View>
-                </View>
-            ) : null}
+                </MotiView>
 
-            {loading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color="#2D666B" />
-                </View>
-            ) : notes.length === 0 ? (
-                /* Empty state */
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, marginTop: 40 }}>
-                    <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 100, type: 'spring' }} style={{ alignItems: 'center' }}>
-                        <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', marginBottom: 28, borderWidth: 2, borderColor: '#F3EEE6', shadowColor: '#182428', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.03, shadowRadius: 24, elevation: 2 }}>
-                            <FileText size={48} color="#8B938E" />
+                {!loading ? (
+                    <View style={{ paddingHorizontal: 24, paddingTop: 20, width: '100%', maxWidth: 960, alignSelf: 'center' }}>
+                        <View style={{ flexDirection: width > 768 ? 'row' : 'column', gap: 12, marginBottom: 20 }}>
+                            <PressableScale onPress={() => setFilter('all')} style={{ flex: 1 }}>
+                                <ClientMetricCard
+                                    icon={Edit3}
+                                    label={i18n.t('notes.stats.total_label', { defaultValue: 'Journal entries' })}
+                                    value={String(noteStats.total)}
+                                    hint={i18n.t('notes.stats.total_hint', { defaultValue: 'Alle Einträge anzeigen.' })}
+                                    tone="primary"
+                                />
+                            </PressableScale>
+                            <PressableScale onPress={() => setFilter('mine')} style={{ flex: 1 }}>
+                                <ClientMetricCard
+                                    icon={Lock}
+                                    label={i18n.t('notes.stats.private_label', { defaultValue: 'Private Einträge' })}
+                                    value={String(noteStats.mine)}
+                                    hint={i18n.t('notes.stats.private_hint', { defaultValue: 'Notizen nur für dich.' })}
+                                    tone="secondary"
+                                />
+                            </PressableScale>
+                            <PressableScale onPress={() => setFilter('therapist')} style={{ flex: 1 }}>
+                                <ClientMetricCard
+                                    icon={UserSquare2}
+                                    label={i18n.t('notes.stats.shared_label', { defaultValue: 'Vom Therapeut' })}
+                                    value={String(noteStats.therapist)}
+                                    hint={i18n.t('notes.stats.shared_hint', { defaultValue: 'Freigegebene Notizen.' })}
+                                    tone="success"
+                                />
+                            </PressableScale>
                         </View>
-                        <Text style={{ fontSize: 24, fontWeight: '900', color: '#182428', letterSpacing: -0.5, marginBottom: 12, textAlign: 'center' }}>
-                            {i18n.t('notes.empty.title', { defaultValue: 'Noch keine Notizen' })}
-                        </Text>
-                        <Text style={{ fontSize: 16, color: '#6F7472', textAlign: 'center', lineHeight: 24, maxWidth: 300, fontWeight: '500', marginBottom: 36 }}>
-                            {i18n.t('notes.empty.description', { defaultValue: 'Halte Beobachtungen, Erkenntnisse und Fortschritte aus deinen Sessions fest. Du kannst Text, Bild und Sprache kombinieren.' })}
-                        </Text>
-                        <PressableScale
-                            onPress={openCreateModal}
-                            style={{ backgroundColor: '#2D666B', paddingHorizontal: 32, paddingVertical: 18, borderRadius: 24, flexDirection: 'row', alignItems: 'center', shadowColor: '#2D666B', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 }}
-                        >
-                            <Plus size={20} color="white" />
-                            <Text style={{ color: 'white', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>
-                                {i18n.t('notes.empty.cta', { defaultValue: 'Erste Notiz erstellen' })}
+                    </View>
+                ) : null}
+
+                {loading ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#2D666B" />
+                    </View>
+                ) : notes.length === 0 ? (
+                    /* Empty state */
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, marginTop: 40 }}>
+                        <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 100, type: 'spring' }} style={{ alignItems: 'center' }}>
+                            <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', marginBottom: 28, borderWidth: 2, borderColor: '#F3EEE6', shadowColor: '#182428', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.03, shadowRadius: 24, elevation: 2 }}>
+                                <FileText size={48} color="#8B938E" />
+                            </View>
+                            <Text style={{ fontSize: 24, fontWeight: '900', color: '#182428', letterSpacing: -0.5, marginBottom: 12, textAlign: 'center' }}>
+                                {i18n.t('notes.empty.title', { defaultValue: 'Noch keine Notizen' })}
                             </Text>
-                        </PressableScale>
-                    </MotiView>
-                </View>
-            ) : (
-                <View style={{ flex: 1 }}>
-
-
-                    <View style={{ padding: 24, maxWidth: 860, alignSelf: 'center', width: '100%' }}>
-                        <DashboardSectionHeader
-                            title={i18n.t('notes.section.title', { defaultValue: 'Journal' })}
-              subtitle={i18n.t('notes.section.subtitle', { defaultValue: 'Suche, filtere und öffne deine Einträge nach Datum.' })}
-                        />
-                        {grouped.length === 0 && (
-                            <View style={{ alignItems: 'center', paddingVertical: 80 }}>
-                                <Search size={40} color="#BEC7C0" style={{ marginBottom: 16 }} />
-                                <Text style={{ fontSize: 17, color: '#6F7472', fontWeight: '600' }}>
-                                    {i18n.t('notes.search.empty', { defaultValue: 'Keine Notizen gefunden für "%{query}"', query: search })}
+                            <Text style={{ fontSize: 16, color: '#6F7472', textAlign: 'center', lineHeight: 24, maxWidth: 300, fontWeight: '500', marginBottom: 36 }}>
+                                {i18n.t('notes.empty.description', { defaultValue: 'Halte Beobachtungen, Erkenntnisse und Fortschritte aus deinen Sessions fest. Du kannst Text, Bild und Sprache kombinieren.' })}
+                            </Text>
+                            <PressableScale
+                                onPress={openCreateModal}
+                                style={{ backgroundColor: '#2D666B', paddingHorizontal: 32, paddingVertical: 18, borderRadius: 24, flexDirection: 'row', alignItems: 'center', shadowColor: '#2D666B', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.2, shadowRadius: 16, elevation: 4 }}
+                            >
+                                <Plus size={20} color="white" />
+                                <Text style={{ color: 'white', fontWeight: '800', fontSize: 16, marginLeft: 8 }}>
+                                    {i18n.t('notes.empty.cta', { defaultValue: 'Erste Notiz erstellen' })}
                                 </Text>
-                            </View>
-                        )}
-                        {grouped.map(([dateLabel, items]: any, gi: number) => (
-                            <View key={dateLabel as string} style={{ marginBottom: 32 }}>
-                                {/* Date header */}
-                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderWidth: 1, borderColor: '#E7E0D4', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 }}>
-                                        <Calendar size={14} color="#2D666B" />
-                                        <Text style={{ fontSize: 13, fontWeight: '800', color: '#1F2528', marginLeft: 6 }}>{dateLabel}</Text>
-                                    </View>
-                                    <View style={{ flex: 1, height: 1, backgroundColor: '#E7E0D4', marginLeft: 12 }} />
-                                </View>
-
-                                {/* Notes in this group — Timeline layout */}
-                                <View style={{ paddingLeft: 16, borderLeftWidth: 2, borderLeftColor: '#E7E0D4' }}>
-                                    {(items as any[]).map((note: any, ni: number) => (
-                                        <NoteCard
-                                            key={note.id}
-                                            note={note}
-                                            gi={gi}
-                                            ni={ni}
-                                            isExpanded={expandedId === note.id}
-                                            onToggleExpand={() => setExpandedId(expandedId === note.id ? null : note.id)}
-                                            onDeletePrompt={() => { setNoteToDelete(note); setDeleteModalVisible(true); }}
-                                            onEditPrompt={handleEditNote}
-                                            formatTime={formatTime}
-                                            formatDateTime={formatDateTime}
-                                            stripHtml={stripHtml}
-                                        />
-                                    ))}
-                                </View>
-                            </View>
-                        ))}
+                            </PressableScale>
+                        </MotiView>
                     </View>
-                </View>
-            )}
+                ) : (
+                    <View style={{ flex: 1 }}>
+
+
+                        <View style={{ padding: 24, maxWidth: 860, alignSelf: 'center', width: '100%' }}>
+                            <DashboardSectionHeader
+                                title={i18n.t('notes.section.title', { defaultValue: 'Journal' })}
+                                subtitle={i18n.t('notes.section.subtitle', { defaultValue: 'Suche, filtere und öffne deine Einträge nach Datum.' })}
+                            />
+                            {grouped.length === 0 && (
+                                <View style={{ alignItems: 'center', paddingVertical: 80 }}>
+                                    <Search size={40} color="#BEC7C0" style={{ marginBottom: 16 }} />
+                                    <Text style={{ fontSize: 17, color: '#6F7472', fontWeight: '600' }}>
+                                        {i18n.t('notes.search.empty', { defaultValue: 'Keine Notizen gefunden für "%{query}"', query: search })}
+                                    </Text>
+                                </View>
+                            )}
+                            {grouped.map(([dateLabel, items]: any, gi: number) => (
+                                <View key={dateLabel as string} style={{ marginBottom: 32 }}>
+                                    {/* Date header */}
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderWidth: 1, borderColor: '#E7E0D4', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 }}>
+                                            <Calendar size={14} color="#2D666B" />
+                                            <Text style={{ fontSize: 13, fontWeight: '800', color: '#1F2528', marginLeft: 6 }}>{dateLabel}</Text>
+                                        </View>
+                                        <View style={{ flex: 1, height: 1, backgroundColor: '#E7E0D4', marginLeft: 12 }} />
+                                    </View>
+
+                                    {/* Notes in this group — Timeline layout */}
+                                    <View style={{ paddingLeft: 16, borderLeftWidth: 2, borderLeftColor: '#E7E0D4' }}>
+                                        {(items as any[]).map((note: any, ni: number) => (
+                                            <NoteCard
+                                                key={note.id}
+                                                note={note}
+                                                gi={gi}
+                                                ni={ni}
+                                                isExpanded={expandedId === note.id}
+                                                onToggleExpand={() => setExpandedId(expandedId === note.id ? null : note.id)}
+                                                onDeletePrompt={() => { setNoteToDelete(note); setDeleteModalVisible(true); }}
+                                                onEditPrompt={handleEditNote}
+                                                formatTime={formatTime}
+                                                formatDateTime={formatDateTime}
+                                                stripHtml={stripHtml}
+                                            />
+                                        ))}
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                )}
 
             </ScrollView>
 
@@ -1160,7 +1166,7 @@ export default function ClientNotesScreen() {
                             <PressableScale onPress={() => setIsShared(!isShared)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: isShared ? '#EEF2FF' : '#F5F1EA', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12 }}>
                                 {isShared ? <Share2 size={14} color="#4F46E5" /> : <Lock size={14} color="#56636B" />}
                                 <Text style={{ fontSize: 13, fontWeight: '800', color: isShared ? '#4F46E5' : '#56636B' }}>
-                                {isShared ? i18n.t('notes.privacy.shared', { defaultValue: 'Freigegeben' }) : i18n.t('notes.privacy.private', { defaultValue: 'Privat' })}
+                                    {isShared ? i18n.t('notes.privacy.shared', { defaultValue: 'Freigegeben' }) : i18n.t('notes.privacy.private', { defaultValue: 'Privat' })}
                                 </Text>
                             </PressableScale>
 
@@ -1181,13 +1187,13 @@ export default function ClientNotesScreen() {
                             </Text>
                             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
                                 <View style={{ backgroundColor: '#F5F1EA', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 }}>
-                                <Text style={{ fontSize: 11, fontWeight: '800', color: '#56636B' }}>
-                                    {draftPlainText.length} {i18n.t('notes.characters_label', { defaultValue: 'Zeichen' })}
-                                </Text>
+                                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#56636B' }}>
+                                        {draftPlainText.length} {i18n.t('notes.characters_label', { defaultValue: 'Zeichen' })}
+                                    </Text>
                                 </View>
                                 <View style={{ backgroundColor: isShared ? '#EEF2FF' : '#F5F1EA', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 }}>
                                     <Text style={{ fontSize: 11, fontWeight: '800', color: isShared ? '#4F46E5' : '#56636B' }}>
-                    {isShared ? i18n.t('notes.privacy.shared_hint', { defaultValue: 'Sichtbar für Therapeut' }) : i18n.t('notes.privacy.private_hint', { defaultValue: 'Nur für mich sichtbar' })}
+                                        {isShared ? i18n.t('notes.privacy.shared_hint', { defaultValue: 'Sichtbar für Therapeut' }) : i18n.t('notes.privacy.private_hint', { defaultValue: 'Nur für mich sichtbar' })}
                                     </Text>
                                 </View>
                             </View>
@@ -1378,24 +1384,24 @@ export default function ClientNotesScreen() {
                         </ScrollView>
 
                         {(!isDesktopComposer || showOutlinePanel) && (
-                        <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
-                            <View style={{ backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#ECE4D9', padding: 16 }}>
-                                <Text style={{ fontSize: 13, fontWeight: '800', color: '#6F7472', marginBottom: 10 }}>Dokumentenstruktur</Text>
-                                {documentOutline.length === 0 ? (
-                                    <Text style={{ fontSize: 12, color: '#9AA29D' }}>Füge Überschriften hinzu, um hier eine Gliederung zu sehen.</Text>
-                                ) : (
-                                    documentOutline.map((item, index) => {
-                                        const isActive = activeOutlineIndex === index;
-                                        return (
-                                            <PressableScale key={item.id} onPress={() => handleOutlineNavigate(index)} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, paddingVertical: 4, paddingHorizontal: 6, borderRadius: 10, backgroundColor: isActive ? '#EEF4F3' : 'transparent' }}>
-                                                <View style={{ width: item.level * 8 }} />
-                                                <Text style={{ fontSize: 13, color: isActive ? '#2D666B' : '#1F2528', fontWeight: '600' }}>{item.title}</Text>
-                                            </PressableScale>
-                                        );
-                                    })
-                                )}
+                            <View style={{ paddingHorizontal: 24, marginBottom: 8 }}>
+                                <View style={{ backgroundColor: '#FFF', borderRadius: 20, borderWidth: 1, borderColor: '#ECE4D9', padding: 16 }}>
+                                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#6F7472', marginBottom: 10 }}>Dokumentenstruktur</Text>
+                                    {documentOutline.length === 0 ? (
+                                        <Text style={{ fontSize: 12, color: '#9AA29D' }}>Füge Überschriften hinzu, um hier eine Gliederung zu sehen.</Text>
+                                    ) : (
+                                        documentOutline.map((item, index) => {
+                                            const isActive = activeOutlineIndex === index;
+                                            return (
+                                                <PressableScale key={item.id} onPress={() => handleOutlineNavigate(index)} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, paddingVertical: 4, paddingHorizontal: 6, borderRadius: 10, backgroundColor: isActive ? '#EEF4F3' : 'transparent' }}>
+                                                    <View style={{ width: item.level * 8 }} />
+                                                    <Text style={{ fontSize: 13, color: isActive ? '#2D666B' : '#1F2528', fontWeight: '600' }}>{item.title}</Text>
+                                                </PressableScale>
+                                            );
+                                        })
+                                    )}
+                                </View>
                             </View>
-                        </View>
                         )}
 
                         {/* Content Area */}
@@ -1485,21 +1491,21 @@ export default function ClientNotesScreen() {
                                         </>
                                     ) : (
                                         <View style={{ minHeight: 400 }}>
-                                                {RichEditor && (
-                                                    <RichEditor
-                                                        ref={richText}
-                                                        initialContentHTML={newNoteContent}
-                                                        onChange={setNewNoteContent}
-                                                        placeholder="Beginne hier zu schreiben..."
-                                                        editorStyle={{
-                                                            backgroundColor: 'transparent',
-                                                            color: focusMode ? '#F8FAFC' : '#3A4340',
-                                                            placeholderColor: '#7E8A90',
-                                                            cssText: `font-size: ${fontSize}px; line-height: ${computedLineHeightPx}px;`
-                                                        }}
-                                                        style={{ flex: 1, minHeight: 400 }}
-                                                    />
-                                                )}
+                                            {RichEditor && (
+                                                <RichEditor
+                                                    ref={richText}
+                                                    initialContentHTML={newNoteContent}
+                                                    onChange={setNewNoteContent}
+                                                    placeholder="Beginne hier zu schreiben..."
+                                                    editorStyle={{
+                                                        backgroundColor: 'transparent',
+                                                        color: focusMode ? '#F8FAFC' : '#3A4340',
+                                                        placeholderColor: '#7E8A90',
+                                                        cssText: `font-size: ${fontSize}px; line-height: ${computedLineHeightPx}px;`
+                                                    }}
+                                                    style={{ flex: 1, minHeight: 400 }}
+                                                />
+                                            )}
                                         </View>
                                     )}
                                 </View>

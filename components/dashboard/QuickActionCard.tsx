@@ -41,11 +41,12 @@ export function QuickActionCard({
     const palette = toneMap[tone];
 
     return (
-        <PressableScale onPress={onPress}>
+        <PressableScale onPress={onPress} className="flex-1 h-full">
             <Card
                 variant="elevated"
                 padding="lg"
                 style={{
+                    flex: 1,
                     minHeight: 132,
                     backgroundColor: colors.card,
                     borderColor: isDark ? colors.cardBorder : 'rgba(0,0,0,0.06)',
