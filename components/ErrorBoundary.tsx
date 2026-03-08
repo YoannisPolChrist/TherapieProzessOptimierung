@@ -1,4 +1,4 @@
-import React, { Component, ReactNode } from 'react';
+﻿import React, { Component, ReactNode } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { PressableScale } from './ui/PressableScale';
 
@@ -84,7 +84,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.
                     </Text>
 
-                    {__DEV__ && this.state.error && (
+                    {this.state.error && (
                         <ScrollView
                             style={{
                                 backgroundColor: '#20363A',

@@ -1,4 +1,4 @@
-import { View, Text, ActivityIndicator, InteractionManager, Linking, Platform } from 'react-native';
+﻿import { View, Text, ActivityIndicator, InteractionManager, Linking, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { MotiView } from 'moti';
@@ -483,7 +483,7 @@ export default function ClientDashboard() {
                         })}
                     />
 
-                    <View className="mb-6 flex flex-col gap-3 md:flex-row md:flex-wrap">
+                    <View className="mb-6 flex flex-col items-stretch gap-3 md:flex-row md:flex-wrap md:items-stretch">
                         {bookingUrl ? (
                             <View className="w-full md:flex-1">
                                 <MotiView

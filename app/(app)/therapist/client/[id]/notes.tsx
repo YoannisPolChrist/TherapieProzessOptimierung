@@ -187,12 +187,12 @@ export default function TherapistClientNotesScreen() {
                 setToast({ visible: true, message: 'Berechtigung', subMessage: 'Galerie-Zugriff wird benötigt.', type: 'warning' });
                 return;
             }
-            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, quality: 0.8 });
+            const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsEditing: true, quality: 0.8 });
             if (!result.canceled && result.assets?.[0]) {
-                setNewNoteImage({ uri: result.assets[0].uri });
+                setNewNoteImage({ uri: result.assets[0].uri, file: (result.assets[0] as any).file });
             }
         } catch (error) {
-            setToast({ visible: true, message: 'Fehler', subMessage: 'Bild konnte nicht geladen werden.', type: 'error' });
+            setToast({ visible: true, message: 'Fehler', subMessage: 'Medium konnte nicht geladen werden.', type: 'error' });
         }
     };
 
@@ -286,142 +286,142 @@ export default function TherapistClientNotesScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: '#F7F4EE' }}>
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-            {/* Header */}
-            <MotiView from={{ opacity: 0, translateY: -30 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 380 }}>
-                <View style={{ backgroundColor: '#2D666B', paddingTop: 64, paddingBottom: 28, paddingHorizontal: 28 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-                        <PressableScale onPress={goBack} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.18)', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 }}>
-                            <ArrowLeft size={18} color="white" />
-                            <Text style={{ color: 'white', fontWeight: '700', marginLeft: 8, fontSize: 15 }}>Zurück</Text>
-                        </PressableScale>
-                        <PressableScale
-                            onPress={() => setShowNoteModal(true)}
-                            style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20 }}
-                        >
-                            <Plus size={18} color="#2D666B" />
-                            <Text style={{ color: '#2D666B', fontWeight: '800', marginLeft: 6, fontSize: 15 }}>Session Note</Text>
-                        </PressableScale>
-                    </View>
-
-                    <Text style={{ color: 'white', fontSize: 28, fontWeight: '900', letterSpacing: -0.5, marginBottom: 4 }}>Notizen & Tagebuch</Text>
-
-                    {/* Stats row */}
-                    <View style={{ flexDirection: 'row', gap: 12, marginBottom: 18 }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 }}>
-                            <Lock size={12} color="rgba(255,255,255,0.9)" />
-                            <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', marginLeft: 5 }}>{sessionCount} Session Notes</Text>
-                        </View>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 }}>
-                            <BookOpen size={12} color="rgba(255,255,255,0.9)" />
-                            <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', marginLeft: 5 }}>{journalCount} Tagebucheinträge</Text>
-                        </View>
-                    </View>
-
-                    {/* Filter Chips */}
-                    <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
-                        {([
-                            { key: 'all', label: 'Alle' },
-                            { key: 'session', label: 'Session Notes' },
-                            { key: 'journal', label: 'Tagebuch' },
-                        ] as const).map(({ key, label }) => (
-                            <PressableScale
-                                key={key}
-                                onPress={() => setFilter(key)}
-                                style={{ backgroundColor: filter === key ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 }}
-                            >
-                                <Text style={{ color: filter === key ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>{label}</Text>
+                {/* Header */}
+                <MotiView from={{ opacity: 0, translateY: -30 }} animate={{ opacity: 1, translateY: 0 }} transition={{ type: 'timing', duration: 380 }}>
+                    <View style={{ backgroundColor: '#2D666B', paddingTop: 64, paddingBottom: 28, paddingHorizontal: 28 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <PressableScale onPress={goBack} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.18)', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 }}>
+                                <ArrowLeft size={18} color="white" />
+                                <Text style={{ color: 'white', fontWeight: '700', marginLeft: 8, fontSize: 15 }}>Zurück</Text>
                             </PressableScale>
-                        ))}
-                    </View>
-
-                    {/* Search */}
-                    {notes.length > 0 && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12 }}>
-                            <Search size={18} color="rgba(255,255,255,0.7)" />
-                            <TextInput
-                                value={search}
-                                onChangeText={setSearch}
-                                placeholder="Notizen durchsuchen..."
-                                placeholderTextColor="rgba(255,255,255,0.5)"
-                                style={{ flex: 1, marginLeft: 10, color: 'white', fontSize: 15, fontWeight: '600' } as any}
-                            />
-                            {search.length > 0 && (
-                                <PressableScale onPress={() => setSearch('')} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                                    <X size={18} color="rgba(255,255,255,0.7)" />
-                                </PressableScale>
-                            )}
+                            <PressableScale
+                                onPress={() => setShowNoteModal(true)}
+                                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20 }}
+                            >
+                                <Plus size={18} color="#2D666B" />
+                                <Text style={{ color: '#2D666B', fontWeight: '800', marginLeft: 6, fontSize: 15 }}>Session Note</Text>
+                            </PressableScale>
                         </View>
-                    )}
-                </View>
-            </MotiView>
 
-            {loading ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <ActivityIndicator size="large" color="#2D666B" />
-                </View>
-            ) : notes.length === 0 ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-                    <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 100, type: 'spring' }} style={{ alignItems: 'center' }}>
-                        <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', marginBottom: 24, borderWidth: 2, borderColor: '#F3EEE6' }}>
-                            <Edit3 size={40} color="#8B938E" />
-                        </View>
-                        <Text style={{ fontSize: 22, fontWeight: '900', color: '#182428', letterSpacing: -0.5, marginBottom: 10, textAlign: 'center' }}>Keine Notizen</Text>
-                        <Text style={{ fontSize: 15, color: '#6F7472', textAlign: 'center', lineHeight: 22, maxWidth: 300, fontWeight: '500', marginBottom: 32 }}>
-                            Halte Beobachtungen und Erkenntnisse aus euren Sessions fest.
-                        </Text>
-                        <PressableScale
-                            onPress={() => setShowNoteModal(true)}
-                            style={{ backgroundColor: '#2D666B', paddingHorizontal: 28, paddingVertical: 16, borderRadius: 20, flexDirection: 'row', alignItems: 'center' }}
-                        >
-                            <Plus size={18} color="white" />
-                            <Text style={{ color: 'white', fontWeight: '800', fontSize: 15, marginLeft: 8 }}>Erste Session Note</Text>
-                        </PressableScale>
-                    </MotiView>
-                </View>
-            ) : filteredNotes.length === 0 ? (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
-                    <Search size={40} color="#BEC7C0" />
-                    <Text style={{ fontSize: 16, color: '#6F7472', fontWeight: '600', marginTop: 16, textAlign: 'center' }}>Keine Notizen für diesen Filter</Text>
-                </View>
-            ) : (
-                <SectionList
-                    sections={sections}
-                    scrollEnabled={false}
-                    keyExtractor={item => item.id}
-                    contentContainerStyle={{ padding: 24, paddingBottom: 0, maxWidth: 860, alignSelf: 'center', width: '100%' }}
-                    showsVerticalScrollIndicator={false}
-                    renderSectionHeader={({ section: { title, data } }) => (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderWidth: 1, borderColor: '#E7E0D4', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 }}>
-                                <Calendar size={13} color="#2D666B" />
-                                <Text style={{ fontSize: 13, fontWeight: '800', color: '#1F2528', marginLeft: 6 }}>{title}</Text>
-                                <Text style={{ fontSize: 11, color: '#8B938E', fontWeight: '600', marginLeft: 6 }}>{data.length} Einträge</Text>
+                        <Text style={{ color: 'white', fontSize: 28, fontWeight: '900', letterSpacing: -0.5, marginBottom: 4 }}>Notizen & Tagebuch</Text>
+
+                        {/* Stats row */}
+                        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 18 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 }}>
+                                <Lock size={12} color="rgba(255,255,255,0.9)" />
+                                <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', marginLeft: 5 }}>{sessionCount} Session Notes</Text>
                             </View>
-                            <View style={{ flex: 1, height: 1, backgroundColor: '#E7E0D4', marginLeft: 12 }} />
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 }}>
+                                <BookOpen size={12} color="rgba(255,255,255,0.9)" />
+                                <Text style={{ color: 'white', fontSize: 12, fontWeight: '700', marginLeft: 5 }}>{journalCount} Tagebucheinträge</Text>
+                            </View>
                         </View>
-                    )}
-                    renderItem={({ item }) => (
-                        <View style={{ paddingLeft: 16, borderLeftWidth: 2, borderLeftColor: '#E7E0D4' }}>
-                            <NoteCard
-                                note={item}
-                                isExpanded={expandedId === item.id}
-                                onToggleExpand={() => {
-                                    if (Platform.OS !== 'web') Haptics.selectionAsync();
-                                    setExpandedId(prev => prev === item.id ? null : item.id);
-                                }}
-                                onDeletePrompt={() => {
-                                    setNoteToDelete(item);
-                                    setDeleteModalVisible(true);
-                                }}
-                                formatTime={formatTime}
-                            />
-                        </View>
-                    )}
-                    renderSectionFooter={() => <View style={{ marginBottom: 24 }} />}
-                />
-            )}
 
-            {/* ── Create Note Modal (Bear / Notion Redesign) ──────────────── */}
+                        {/* Filter Chips */}
+                        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 16 }}>
+                            {([
+                                { key: 'all', label: 'Alle' },
+                                { key: 'session', label: 'Session Notes' },
+                                { key: 'journal', label: 'Tagebuch' },
+                            ] as const).map(({ key, label }) => (
+                                <PressableScale
+                                    key={key}
+                                    onPress={() => setFilter(key)}
+                                    style={{ backgroundColor: filter === key ? 'white' : 'rgba(255,255,255,0.15)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 16 }}
+                                >
+                                    <Text style={{ color: filter === key ? '#2D666B' : 'white', fontWeight: '700', fontSize: 13 }}>{label}</Text>
+                                </PressableScale>
+                            ))}
+                        </View>
+
+                        {/* Search */}
+                        {notes.length > 0 && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12 }}>
+                                <Search size={18} color="rgba(255,255,255,0.7)" />
+                                <TextInput
+                                    value={search}
+                                    onChangeText={setSearch}
+                                    placeholder="Notizen durchsuchen..."
+                                    placeholderTextColor="rgba(255,255,255,0.5)"
+                                    style={{ flex: 1, marginLeft: 10, color: 'white', fontSize: 15, fontWeight: '600' } as any}
+                                />
+                                {search.length > 0 && (
+                                    <PressableScale onPress={() => setSearch('')} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                                        <X size={18} color="rgba(255,255,255,0.7)" />
+                                    </PressableScale>
+                                )}
+                            </View>
+                        )}
+                    </View>
+                </MotiView>
+
+                {loading ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color="#2D666B" />
+                    </View>
+                ) : notes.length === 0 ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+                        <MotiView from={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 100, type: 'spring' }} style={{ alignItems: 'center' }}>
+                            <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: 'white', alignItems: 'center', justifyContent: 'center', marginBottom: 24, borderWidth: 2, borderColor: '#F3EEE6' }}>
+                                <Edit3 size={40} color="#8B938E" />
+                            </View>
+                            <Text style={{ fontSize: 22, fontWeight: '900', color: '#182428', letterSpacing: -0.5, marginBottom: 10, textAlign: 'center' }}>Keine Notizen</Text>
+                            <Text style={{ fontSize: 15, color: '#6F7472', textAlign: 'center', lineHeight: 22, maxWidth: 300, fontWeight: '500', marginBottom: 32 }}>
+                                Halte Beobachtungen und Erkenntnisse aus euren Sessions fest.
+                            </Text>
+                            <PressableScale
+                                onPress={() => setShowNoteModal(true)}
+                                style={{ backgroundColor: '#2D666B', paddingHorizontal: 28, paddingVertical: 16, borderRadius: 20, flexDirection: 'row', alignItems: 'center' }}
+                            >
+                                <Plus size={18} color="white" />
+                                <Text style={{ color: 'white', fontWeight: '800', fontSize: 15, marginLeft: 8 }}>Erste Session Note</Text>
+                            </PressableScale>
+                        </MotiView>
+                    </View>
+                ) : filteredNotes.length === 0 ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+                        <Search size={40} color="#BEC7C0" />
+                        <Text style={{ fontSize: 16, color: '#6F7472', fontWeight: '600', marginTop: 16, textAlign: 'center' }}>Keine Notizen für diesen Filter</Text>
+                    </View>
+                ) : (
+                    <SectionList
+                        sections={sections}
+                        scrollEnabled={false}
+                        keyExtractor={item => item.id}
+                        contentContainerStyle={{ padding: 24, paddingBottom: 0, maxWidth: 860, alignSelf: 'center', width: '100%' }}
+                        showsVerticalScrollIndicator={false}
+                        renderSectionHeader={({ section: { title, data } }) => (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16, marginTop: 8 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderWidth: 1, borderColor: '#E7E0D4', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 }}>
+                                    <Calendar size={13} color="#2D666B" />
+                                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#1F2528', marginLeft: 6 }}>{title}</Text>
+                                    <Text style={{ fontSize: 11, color: '#8B938E', fontWeight: '600', marginLeft: 6 }}>{data.length} Einträge</Text>
+                                </View>
+                                <View style={{ flex: 1, height: 1, backgroundColor: '#E7E0D4', marginLeft: 12 }} />
+                            </View>
+                        )}
+                        renderItem={({ item }) => (
+                            <View style={{ paddingLeft: 16, borderLeftWidth: 2, borderLeftColor: '#E7E0D4' }}>
+                                <NoteCard
+                                    note={item}
+                                    isExpanded={expandedId === item.id}
+                                    onToggleExpand={() => {
+                                        if (Platform.OS !== 'web') Haptics.selectionAsync();
+                                        setExpandedId(prev => prev === item.id ? null : item.id);
+                                    }}
+                                    onDeletePrompt={() => {
+                                        setNoteToDelete(item);
+                                        setDeleteModalVisible(true);
+                                    }}
+                                    formatTime={formatTime}
+                                />
+                            </View>
+                        )}
+                        renderSectionFooter={() => <View style={{ marginBottom: 24 }} />}
+                    />
+                )}
+
+                {/* ── Create Note Modal (Bear / Notion Redesign) ──────────────── */}
             </ScrollView>
             <Modal visible={showNoteModal} animationType="slide" presentationStyle="formSheet">
                 <KeyboardAvoidingView

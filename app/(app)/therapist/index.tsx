@@ -277,139 +277,141 @@ export default function TherapistDashboard() {
                 transition={{ type: 'timing', duration: 320, delay: Math.min((index % 10) * 50, 400) }}
                 className={`mb-4 ${numColumns > 1 ? 'flex-1 max-w-[500px]' : 'w-full'}`}
             >
-                <Card
-                    variant="elevated"
-                    padding="lg"
-                    style={{
-                        backgroundColor: colors.card,
-                        borderColor: isDark ? colors.cardBorder : 'rgba(0,0,0,0.06)',
-                        shadowColor: isDark ? '#000' : '#182428',
-                        shadowOffset: { width: 0, height: 10 },
-                        shadowOpacity: isDark ? 0.18 : 0.05,
-                        shadowRadius: 28,
-                        elevation: 4,
-                    }}
-                >
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                        <View style={{ flexDirection: 'row', flex: 1, paddingRight: 12, alignItems: 'center' }}>
-                            <LinearGradient
-                                colors={['#4E7E82', '#2D666B']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={{ width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginRight: 14 }}
-                            >
-                                <Text style={{ color: 'white', fontWeight: '900', fontSize: 17 }}>
-                                    {item.firstName?.charAt(0)}{item.lastName?.charAt(0)}
-                                </Text>
-                            </LinearGradient>
+                <PressableScale onPress={() => handleOpenRecord(item.id)}>
+                    <Card
+                        variant="elevated"
+                        padding="lg"
+                        style={{
+                            backgroundColor: colors.card,
+                            borderColor: isDark ? colors.cardBorder : 'rgba(0,0,0,0.06)',
+                            shadowColor: isDark ? '#000' : '#182428',
+                            shadowOffset: { width: 0, height: 10 },
+                            shadowOpacity: isDark ? 0.18 : 0.05,
+                            shadowRadius: 28,
+                            elevation: 4,
+                        }}
+                    >
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                            <View style={{ flexDirection: 'row', flex: 1, paddingRight: 12, alignItems: 'center' }}>
+                                <LinearGradient
+                                    colors={['#4E7E82', '#2D666B']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{ width: 52, height: 52, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginRight: 14 }}
+                                >
+                                    <Text style={{ color: 'white', fontWeight: '900', fontSize: 17 }}>
+                                        {item.firstName?.charAt(0)}{item.lastName?.charAt(0)}
+                                    </Text>
+                                </LinearGradient>
 
-                            <View style={{ flex: 1 }}>
-                                <Text style={{ fontSize: 18, fontWeight: '900', color: colors.text, marginBottom: 8 }} numberOfLines={1}>
-                                    {item.firstName} {item.lastName}
-                                </Text>
-                                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                                    {moodValue !== null ? (
-                                        <Badge variant={isLowMood(moodValue) ? 'warning' : 'default'}>Stimmung {moodValue}/100</Badge>
-                                    ) : (
-                                        <Badge variant="muted">Keine Check-ins</Badge>
-                                    )}
-                                    <Badge variant={completionRate >= 70 ? 'success' : completionRate < 50 ? 'warning' : 'secondary'}>
-                                        {completionRate}% erledigt
-                                    </Badge>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 18, fontWeight: '900', color: colors.text, marginBottom: 8 }} numberOfLines={1}>
+                                        {item.firstName} {item.lastName}
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                                        {moodValue !== null ? (
+                                            <Badge variant={isLowMood(moodValue) ? 'warning' : 'default'}>Stimmung {moodValue}/100</Badge>
+                                        ) : (
+                                            <Badge variant="muted">Keine Check-ins</Badge>
+                                        )}
+                                        <Badge variant={completionRate >= 70 ? 'success' : completionRate < 50 ? 'warning' : 'secondary'}>
+                                            {completionRate}% erledigt
+                                        </Badge>
+                                    </View>
                                 </View>
                             </View>
+                            <Badge variant={status.variant}>{status.label}</Badge>
                         </View>
-                        <Badge variant={status.variant}>{status.label}</Badge>
-                    </View>
 
-                    <View style={{ marginBottom: 18 }}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                            <Text style={{ color: colors.textSubtle, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 }}>
-                                Therapie-Fortschritt
-                            </Text>
-                            <Text style={{ color: colors.text, fontSize: 13, fontWeight: '800' }}>{completionRate}%</Text>
+                        <View style={{ marginBottom: 18 }}>
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                                <Text style={{ color: colors.textSubtle, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                                    Therapie-Fortschritt
+                                </Text>
+                                <Text style={{ color: colors.text, fontSize: 13, fontWeight: '800' }}>{completionRate}%</Text>
+                            </View>
+                            <View style={{ height: 8, borderRadius: 999, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#EEF2F6', overflow: 'hidden' }}>
+                                <View
+                                    style={{
+                                        width: `${Math.max(6, completionRate)}%`,
+                                        height: '100%',
+                                        borderRadius: 999,
+                                        backgroundColor: completionRate >= 70 ? colors.success : completionRate < 50 ? '#F59E0B' : colors.primary,
+                                    }}
+                                />
+                            </View>
                         </View>
-                        <View style={{ height: 8, borderRadius: 999, backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : '#EEF2F6', overflow: 'hidden' }}>
-                            <View
+
+                        <View style={{ flexDirection: 'row', gap: 10 }}>
+                            <PressableScale
                                 style={{
-                                    width: `${Math.max(6, completionRate)}%`,
-                                    height: '100%',
-                                    borderRadius: 999,
-                                    backgroundColor: completionRate >= 70 ? colors.success : completionRate < 50 ? '#F59E0B' : colors.primary,
+                                    backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.07)',
+                                    borderWidth: 1,
+                                    borderColor: 'rgba(239,68,68,0.18)',
+                                    width: 46,
+                                    height: 46,
+                                    borderRadius: 14,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
                                 }}
-                            />
+                                onPress={() => handleDeleteClient(item)}
+                                intensity="subtle"
+                            >
+                                <Trash2 size={17} color="#EF4444" strokeWidth={2.5} />
+                            </PressableScale>
+                            <PressableScale
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                                    borderWidth: 1,
+                                    borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)',
+                                    paddingVertical: 13,
+                                    paddingHorizontal: 14,
+                                    borderRadius: 14,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexDirection: 'row',
+                                    gap: 7,
+                                }}
+                                onPress={() => handleNotify(item)}
+                                intensity="subtle"
+                            >
+                                <MessageCircle size={17} color={colors.text} strokeWidth={2.5} />
+                                <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>Nachricht</Text>
+                            </PressableScale>
+                            <PressableScale
+                                style={{
+                                    flex: 1.2,
+                                    paddingVertical: 13,
+                                    paddingHorizontal: 14,
+                                    borderRadius: 14,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexDirection: 'row',
+                                    gap: 7,
+                                    overflow: 'hidden',
+                                    position: 'relative',
+                                    shadowColor: '#2D666B',
+                                    shadowOffset: { width: 0, height: 6 },
+                                    shadowOpacity: 0.25,
+                                    shadowRadius: 14,
+                                    elevation: 6,
+                                }}
+                                onPress={() => handleOpenRecord(item.id)}
+                                intensity="bold"
+                            >
+                                <LinearGradient
+                                    colors={['#4E7E82', '#2D666B']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 0, y: 1 }}
+                                    style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+                                />
+                                <Text style={{ color: 'white', fontWeight: '900', fontSize: 14, zIndex: 10 }}>Akte öffnen</Text>
+                                <FolderOpen size={16} color="#ffffff" strokeWidth={2.5} />
+                            </PressableScale>
                         </View>
-                    </View>
-
-                    <View style={{ flexDirection: 'row', gap: 10 }}>
-                        <PressableScale
-                            style={{
-                                backgroundColor: isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.07)',
-                                borderWidth: 1,
-                                borderColor: 'rgba(239,68,68,0.18)',
-                                width: 46,
-                                height: 46,
-                                borderRadius: 14,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                            onPress={() => handleDeleteClient(item)}
-                            intensity="subtle"
-                        >
-                            <Trash2 size={17} color="#EF4444" strokeWidth={2.5} />
-                        </PressableScale>
-                        <PressableScale
-                            style={{
-                                flex: 1,
-                                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-                                borderWidth: 1,
-                                borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)',
-                                paddingVertical: 13,
-                                paddingHorizontal: 14,
-                                borderRadius: 14,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexDirection: 'row',
-                                gap: 7,
-                            }}
-                            onPress={() => handleNotify(item)}
-                            intensity="subtle"
-                        >
-                            <MessageCircle size={17} color={colors.text} strokeWidth={2.5} />
-                            <Text style={{ color: colors.text, fontWeight: '800', fontSize: 14 }}>Nachricht</Text>
-                        </PressableScale>
-                        <PressableScale
-                            style={{
-                                flex: 1.2,
-                                paddingVertical: 13,
-                                paddingHorizontal: 14,
-                                borderRadius: 14,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexDirection: 'row',
-                                gap: 7,
-                                overflow: 'hidden',
-                                position: 'relative',
-                                shadowColor: '#2D666B',
-                                shadowOffset: { width: 0, height: 6 },
-                                shadowOpacity: 0.25,
-                                shadowRadius: 14,
-                                elevation: 6,
-                            }}
-                            onPress={() => handleOpenRecord(item.id)}
-                            intensity="bold"
-                        >
-                            <LinearGradient
-                                colors={['#4E7E82', '#2D666B']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 0, y: 1 }}
-                                style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
-                            />
-                            <Text style={{ color: 'white', fontWeight: '900', fontSize: 14, zIndex: 10 }}>Akte öffnen</Text>
-                            <FolderOpen size={16} color="#ffffff" strokeWidth={2.5} />
-                        </PressableScale>
-                    </View>
-                </Card>
+                    </Card>
+                </PressableScale>
             </MotiView>
         );
     };
@@ -512,44 +514,50 @@ export default function TherapistDashboard() {
                         </View>
                     </BlurView>
 
-                    <View style={{ flexDirection: screenWidth < 900 ? 'column' : 'row', gap: 16 }}>
-                        <PressableScale style={{ flex: 1 }} onPress={() => router.push('/(app)/therapist/templates')}>
-                            <Card
-                                variant="elevated"
-                                padding="lg"
-                                style={{
-                                    minHeight: 152,
-                                    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255,255,255,0.95)',
-                                }}
-                            >
-                                <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(19,115,134,0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                                    <FileText size={22} color={colors.primary} strokeWidth={2.5} />
-                                </View>
-                                <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16, marginBottom: 4 }}>{i18n.t('therapist.templates')}</Text>
-                                <Text style={{ color: colors.textSubtle, fontWeight: '600', fontSize: 13, lineHeight: 18 }}>
-                                    Übungsvorlagen erstellen und verwalten
-                                </Text>
-                            </Card>
-                        </PressableScale>
+                    <View style={{ flexDirection: screenWidth < 900 ? 'column' : 'row', gap: 16, width: '100%', display: 'flex' }}>
+                        <View style={{ flex: 1, display: 'flex' }}>
+                            <PressableScale style={{ flex: 1, width: '100%' }} onPress={() => router.push('/(app)/therapist/templates')}>
+                                <Card
+                                    variant="elevated"
+                                    padding="lg"
+                                    style={{
+                                        minHeight: 152,
+                                        flex: 1,
+                                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255,255,255,0.95)',
+                                    }}
+                                >
+                                    <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(19,115,134,0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                                        <FileText size={22} color={colors.primary} strokeWidth={2.5} />
+                                    </View>
+                                    <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16, marginBottom: 4 }}>{i18n.t('therapist.templates')}</Text>
+                                    <Text style={{ color: colors.textSubtle, fontWeight: '600', fontSize: 13, lineHeight: 18 }}>
+                                        Übungsvorlagen erstellen und verwalten
+                                    </Text>
+                                </Card>
+                            </PressableScale>
+                        </View>
 
-                        <PressableScale style={{ flex: 1 }} onPress={() => router.push('/(app)/therapist/resources')}>
-                            <Card
-                                variant="elevated"
-                                padding="lg"
-                                style={{
-                                    minHeight: 152,
-                                    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255,255,255,0.95)',
-                                }}
-                            >
-                                <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(192,157,89,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                                    <Library size={22} color="#B08C57" strokeWidth={2.5} />
-                                </View>
-                                <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16, marginBottom: 4 }}>Bibliothek</Text>
-                                <Text style={{ color: colors.textSubtle, fontWeight: '600', fontSize: 13, lineHeight: 18 }}>
-                                    Gemeinsames Material und Dokumente
-                                </Text>
-                            </Card>
-                        </PressableScale>
+                        <View style={{ flex: 1, display: 'flex' }}>
+                            <PressableScale style={{ flex: 1, width: '100%' }} onPress={() => router.push('/(app)/therapist/resources')}>
+                                <Card
+                                    variant="elevated"
+                                    padding="lg"
+                                    style={{
+                                        minHeight: 152,
+                                        flex: 1,
+                                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.92)' : 'rgba(255,255,255,0.95)',
+                                    }}
+                                >
+                                    <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(192,157,89,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+                                        <Library size={22} color="#B08C57" strokeWidth={2.5} />
+                                    </View>
+                                    <Text style={{ color: colors.text, fontWeight: '900', fontSize: 16, marginBottom: 4 }}>Bibliothek</Text>
+                                    <Text style={{ color: colors.textSubtle, fontWeight: '600', fontSize: 13, lineHeight: 18 }}>
+                                        Gemeinsames Material und Dokumente
+                                    </Text>
+                                </Card>
+                            </PressableScale>
+                        </View>
                     </View>
                 </View>
             </MotiView>
