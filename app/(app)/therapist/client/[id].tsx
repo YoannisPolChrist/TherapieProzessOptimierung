@@ -674,44 +674,48 @@ export default function ClientView() {
               {quickActions.map((action) => {
                 const Icon = action.icon;
                 return (
-                  <PressableScale
+                  <View
                     key={action.key}
-                    intensity="medium"
-                    onPress={() => router.push(action.route as any)}
-                    style={{
-                      width: quickCardWidth,
-                      backgroundColor: "#FFFFFF",
-                      borderRadius: 28,
-                      padding: 24,
-                      borderWidth: 1,
-                      borderColor: "#E7E0D4",
-                      shadowColor: "#182428",
-                      shadowOffset: { width: 0, height: 8 },
-                      shadowOpacity: 0.04,
-                      shadowRadius: 20,
-                      elevation: 3,
-                    }}
+                    style={{ width: isCompact ? '100%' : isMedium ? '47%' : '23%' }}
                   >
-                    <View
+                    <PressableScale
+                      intensity="medium"
+                      onPress={() => router.push(action.route as any)}
                       style={{
-                        width: 68,
-                        height: 68,
-                        borderRadius: 24,
-                        backgroundColor: action.background,
+                        width: '100%',
+                        backgroundColor: "#FFFFFF",
+                        borderRadius: 28,
+                        padding: 24,
                         borderWidth: 1,
-                        borderColor: "rgba(31,37,40,0.05)",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginBottom: 18,
+                        borderColor: "#E7E0D4",
+                        shadowColor: "#182428",
+                        shadowOffset: { width: 0, height: 8 },
+                        shadowOpacity: 0.04,
+                        shadowRadius: 20,
+                        elevation: 3,
                       }}
                     >
-                      <Icon size={30} color={action.color} strokeWidth={2.2} />
-                    </View>
-                    <Text className="text-lg font-bold text-[#1F2528] mb-1">{action.title}</Text>
-                    <Text className="text-sm text-[#5E655F] leading-relaxed">
-                      {action.description}
-                    </Text>
-                  </PressableScale>
+                      <View
+                        style={{
+                          width: 68,
+                          height: 68,
+                          borderRadius: 24,
+                          backgroundColor: action.background,
+                          borderWidth: 1,
+                          borderColor: "rgba(31,37,40,0.05)",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginBottom: 18,
+                        }}
+                      >
+                        <Icon size={30} color={action.color} strokeWidth={2.2} />
+                      </View>
+                      <Text className="text-lg font-bold text-[#1F2528] mb-1">{action.title}</Text>
+                      <Text className="text-sm text-[#5E655F] leading-relaxed">
+                        {action.description}
+                      </Text>
+                    </PressableScale>
+                  </View>
                 );
               })}
             </View>
@@ -761,117 +765,123 @@ export default function ClientView() {
             </View>
           </MotiView>
 
+          {/* ─────────────────────────────────────────────────────────────────
+            • APPOINTMENT SECTION (PREMIUM DESIGN)
+            ───────────────────────────────────────────────────────────────── */}
           <MotiView
             from={{ opacity: 0, translateY: 16 }}
             animate={{ opacity: 1, translateY: 0 }}
-            transition={{ type: "timing", duration: 420, delay: 200 }}
-            style={{ marginBottom: sectionSpacing }}
+            transition={{ type: "timing", duration: 420, delay: 180 }}
+            style={{ marginBottom: 32 }}
           >
             <View
               style={{
                 backgroundColor: "#FFFFFF",
-                borderRadius: 32,
+                borderRadius: 28,
                 padding: 24,
                 borderWidth: 1,
-                borderColor: "#E7E0D4",
-                shadowColor: "#182428",
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.04,
-                shadowRadius: 24,
-                elevation: 3,
+                borderColor: "#E2E8F0",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.03,
+                shadowRadius: 10,
+                elevation: 2,
               }}
             >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}
-              >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 20 }}>
                 <View
                   style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 18,
-                    backgroundColor: "rgba(176,140,87,0.12)",
+                    width: 52,
+                    height: 52,
+                    borderRadius: 20,
+                    backgroundColor: "#F8FAFC",
                     alignItems: "center",
                     justifyContent: "center",
                     borderWidth: 1,
-                    borderColor: "rgba(176,140,87,0.24)",
+                    borderColor: "#F1F5F9",
                   }}
                 >
-                  <Calendar size={22} color="#8A6A53" />
+                  <Calendar size={24} color="#0F172A" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text className="text-lg font-black text-[#1F2528]">
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#0F172A' }}>
                     {i18n.t("therapist.patient.appointment.title", { defaultValue: "Nächster Termin" })}
                   </Text>
-                  <Text className="text-sm text-[#5E655F] mt-1">
+                  <Text style={{ fontSize: 14, color: '#64748B', marginTop: 4 }}>
                     {i18n.t("therapist.patient.appointment.description", {
                       defaultValue: "Wird direkt auf dem Client Dashboard angezeigt.",
                     })}
                   </Text>
                 </View>
               </View>
+
               <View
                 style={{
                   flexDirection: isCompact ? "column" : "row",
                   alignItems: isCompact ? "stretch" : "center",
-                  gap: 16,
+                  gap: 12,
+                  backgroundColor: "#F8FAFC",
+                  padding: 8,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: "#F1F5F9",
                 }}
               >
-                {Platform.OS === "web" ? (
-                  <input
-                    type="datetime-local"
-                    value={nextAppointment}
-                    onChange={(event: any) => setNextAppointment(event.target.value)}
-                    placeholder={i18n.t("therapist.patient.appointment.placeholder", {
-                      defaultValue: "JJJJ-MM-TT HH:MM",
-                    })}
-                    style={{
-                      flex: 1,
-                      backgroundColor: SAND,
-                      border: "1px solid #E7E0D4",
-                      borderRadius: 16,
-                      padding: "16px 20px",
-                      fontSize: 16,
-                      color: "#1F2528",
-                      fontFamily: "inherit",
-                    }}
-                  />
-                ) : (
-                  <TextInput
-                    value={nextAppointment}
-                    onChangeText={setNextAppointment}
-                    placeholder={i18n.t("therapist.patient.appointment.placeholder", {
-                      defaultValue: "JJJJ-MM-TT HH:MM",
-                    })}
-                    placeholderTextColor="#8B938E"
-                    style={{
-                      flex: 1,
-                      backgroundColor: SAND,
-                      borderColor: "#E7E0D4",
-                      borderWidth: 1,
-                      borderRadius: 16,
-                      paddingVertical: 14,
-                      paddingHorizontal: 18,
-                      fontSize: 16,
-                      color: "#1F2528",
-                    }}
-                    autoCorrect={false}
-                    autoCapitalize="none"
-                    returnKeyType="done"
-                  />
-                )}
+                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#E2E8F0', ...Platform.select({ web: { paddingVertical: 14 } as any, default: {} }) }}>
+                  <Calendar size={18} color="#94A3B8" style={{ marginRight: 12 }} />
+                  {Platform.OS === "web" ? (
+                    <input
+                      type="datetime-local"
+                      value={nextAppointment}
+                      onChange={(event: any) => setNextAppointment(event.target.value)}
+                      placeholder={i18n.t("therapist.patient.appointment.placeholder", {
+                        defaultValue: "JJJJ-MM-TT HH:MM",
+                      })}
+                      style={{
+                        flex: 1,
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        fontSize: 15,
+                        color: "#0F172A",
+                        fontFamily: "inherit",
+                        outline: 'none',
+                        width: '100%',
+                        cursor: 'pointer'
+                      }}
+                    />
+                  ) : (
+                    <TextInput
+                      value={nextAppointment}
+                      onChangeText={setNextAppointment}
+                      placeholder={i18n.t("therapist.patient.appointment.placeholder", {
+                        defaultValue: "JJJJ-MM-TT HH:MM",
+                      })}
+                      placeholderTextColor="#94A3B8"
+                      style={{
+                        flex: 1,
+                        fontSize: 15,
+                        color: "#0F172A",
+                      }}
+                      autoCorrect={false}
+                      autoCapitalize="none"
+                      returnKeyType="done"
+                    />
+                  )}
+                </View>
                 <PressableScale
                   onPress={handleSaveAppointment}
-                  disabled={savingAppointment}
+                  disabled={savingAppointment || !nextAppointment.trim()}
                   intensity="medium"
-                  className="items-center justify-center rounded-[18px]"
                   style={{
-                    backgroundColor: "#2D666B",
-                    paddingHorizontal: 26,
-                    paddingVertical: 16,
-                    opacity: savingAppointment ? 0.7 : 1,
+                    backgroundColor: (!nextAppointment.trim()) ? '#E2E8F0' : '#2D666B',
+                    paddingHorizontal: 28,
+                    height: 56,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 16,
                   }}
                 >
-                  <Text className="text-white font-semibold text-base">
+                  <Text style={{ color: (!nextAppointment.trim()) ? '#94A3B8' : '#ffffff', fontWeight: '700', fontSize: 15 }}>
                     {savingAppointment
                       ? i18n.t("therapist.patient.appointment.saving", { defaultValue: "Speichern..." })
                       : i18n.t("therapist.patient.appointment.button", { defaultValue: "Termin speichern" })}

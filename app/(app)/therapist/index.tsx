@@ -126,7 +126,6 @@ export default function TherapistDashboard() {
     const { width: screenWidth } = useWindowDimensions();
     const isTablet = screenWidth > 768;
     const isDesktop = screenWidth > 1024;
-    const numColumns = isDesktop ? 3 : isTablet ? 2 : 1;
     const randomBg = useMemo(() => HOME_BACKGROUNDS[Math.floor(Math.random() * HOME_BACKGROUNDS.length)], []);
 
     useEffect(() => {

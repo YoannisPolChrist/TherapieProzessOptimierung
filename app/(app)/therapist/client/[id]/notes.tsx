@@ -421,41 +421,64 @@ export default function TherapistClientNotesScreen() {
                     />
                 )}
 
-                {/* ── Create Note Modal (Bear / Notion Redesign) ──────────────── */}
             </ScrollView>
             <Modal visible={showNoteModal} animationType="slide" presentationStyle="formSheet">
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ flex: 1, backgroundColor: '#ffffff' }}
                 >
-                    <View style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 60 : 20, backgroundColor: '#ffffff' }}>
-
-                        {/* Minimalist Bear-Style Header */}
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 16 }}>
-                            <PressableScale onPress={() => setShowNoteModal(false)} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}>
-                                <ArrowLeft size={24} color="#5C696F" />
-                            </PressableScale>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#EEF4F3', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12 }}>
-                                <Lock size={12} color="#2D666B" />
-                                <Text style={{ fontSize: 12, fontWeight: '800', color: '#2D666B' }}>Therapeut</Text>
+                    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+                        {/* Premium Header */}
+                        <View style={{
+                            paddingTop: Platform.OS === 'android' ? 60 : 40,
+                            paddingBottom: 24,
+                            paddingHorizontal: 24,
+                            backgroundColor: '#F9FAFB',
+                            borderBottomWidth: 1,
+                            borderBottomColor: '#F1F5F9',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start'
+                        }}>
+                            <View style={{ flex: 1 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                                    <PressableScale onPress={() => setShowNoteModal(false)} hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }} style={{ backgroundColor: '#ffffff', padding: 8, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                                        <ArrowLeft size={20} color="#64748B" />
+                                    </PressableScale>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#ECFDF5', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: '#D1FAE5' }}>
+                                        <Lock size={12} color="#059669" />
+                                        <Text style={{ fontSize: 12, fontWeight: '800', color: '#059669' }}>Private Session Note</Text>
+                                    </View>
+                                </View>
+                                <TextInput
+                                    style={{ fontSize: 32, fontWeight: '900', color: '#0F172A', letterSpacing: -0.5, outlineStyle: 'none' } as any}
+                                    placeholder="Titel der Notiz..."
+                                    placeholderTextColor="#94A3B8"
+                                    value={newNoteTitle}
+                                    onChangeText={setNewNoteTitle}
+                                />
                             </View>
-                            <PressableScale onPress={handleSaveNote} disabled={saving || (!newNoteContent.trim() && !newNoteImage)}>
-                                {saving ? <ActivityIndicator size="small" color="#2D666B" /> : (
-                                    <Text style={{ fontSize: 17, fontWeight: '800', color: (!newNoteContent.trim() && !newNoteImage) ? '#7E8A90' : '#2D666B' }}>
+
+                            <PressableScale
+                                onPress={handleSaveNote}
+                                disabled={saving || (!newNoteContent.trim() && !newNoteImage)}
+                                style={{
+                                    backgroundColor: (!newNoteContent.trim() && !newNoteImage) ? '#F1F5F9' : '#2D666B',
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 12,
+                                    borderRadius: 16,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginTop: 4
+                                }}
+                            >
+                                {saving ? <ActivityIndicator size="small" color="#ffffff" /> : (
+                                    <Text style={{ fontSize: 15, fontWeight: '800', color: (!newNoteContent.trim() && !newNoteImage) ? '#94A3B8' : '#ffffff' }}>
                                         Speichern
                                     </Text>
                                 )}
                             </PressableScale>
                         </View>
-
-                        {/* Title Input - Huge and Borderless */}
-                        <TextInput
-                            style={{ fontSize: 32, fontWeight: '900', color: '#182428', paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8, letterSpacing: -0.5 } as any}
-                            placeholder="Titel..."
-                            placeholderTextColor="#BEC7C0"
-                            value={newNoteTitle}
-                            onChangeText={setNewNoteTitle}
-                        />
 
                         {/* Image Preview (if added) */}
                         {newNoteImage && (
@@ -474,18 +497,18 @@ export default function TherapistClientNotesScreen() {
                                     value={newNoteContent}
                                     onChangeText={setNewNoteContent}
                                     placeholder="Beginne hier zu schreiben..."
-                                    placeholderTextColor="#7E8A90"
-                                    style={{ flex: 1, paddingHorizontal: 24, fontSize: 18, color: '#3A4340', textAlignVertical: 'top', lineHeight: 28, outlineStyle: 'none' } as any}
+                                    placeholderTextColor="#94A3B8"
+                                    style={{ flex: 1, paddingHorizontal: 28, fontSize: 18, color: '#334155', textAlignVertical: 'top', lineHeight: 30, outlineStyle: 'none' } as any}
                                 />
                             ) : (
-                                <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled">
+                                <ScrollView style={{ flex: 1, paddingHorizontal: 4 }} keyboardShouldPersistTaps="handled">
                                     {RichEditor && (
                                         <RichEditor
                                             ref={richText}
                                             initialContentHTML={newNoteContent}
                                             onChange={setNewNoteContent}
                                             placeholder="Beginne hier zu schreiben..."
-                                            editorStyle={{ backgroundColor: 'transparent', color: '#3A4340', placeholderColor: '#7E8A90', cssText: 'padding: 0 24px; font-size: 18px; line-height: 28px;' }}
+                                            editorStyle={{ backgroundColor: 'transparent', color: '#334155', placeholderColor: '#94A3B8', cssText: 'padding: 0 24px; font-size: 18px; line-height: 30px; font-family: system-ui, -apple-system, sans-serif;' }}
                                             style={{ flex: 1, minHeight: 400 }}
                                         />
                                     )}
@@ -494,7 +517,7 @@ export default function TherapistClientNotesScreen() {
                         </View>
 
                         {/* Bottom Toolbar */}
-                        <View style={{ borderTopWidth: 1, borderTopColor: '#F5F1EA', backgroundColor: 'white', paddingHorizontal: 16, paddingVertical: Platform.OS === 'ios' ? 12 : 8, flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={{ borderTopWidth: 1, borderTopColor: '#F1F5F9', backgroundColor: '#F8FAFC', paddingHorizontal: 20, paddingVertical: Platform.OS === 'ios' ? 14 : 10, flexDirection: 'row', alignItems: 'center' }}>
                             {Platform.OS !== 'web' && RichToolbar && (
                                 <View style={{ flex: 1, overflow: 'hidden' }}>
                                     <RichToolbar
@@ -505,14 +528,15 @@ export default function TherapistClientNotesScreen() {
                                             actions.insertBulletsList,
                                             actions.insertOrderedList,
                                         ] : []}
-                                        iconTint="#6F7472"
-                                        selectedIconTint="#2D666B"
+                                        iconTint="#64748B"
+                                        selectedIconTint="#0F172A"
+                                        selectedButtonStyle={{ backgroundColor: '#E2E8F0', borderRadius: 8 }}
                                         style={{ backgroundColor: 'transparent', paddingHorizontal: 0 }}
                                     />
                                 </View>
                             )}
-                            <PressableScale onPress={pickImage} style={{ padding: 10, backgroundColor: '#F5F1EA', borderRadius: 12 }}>
-                                <Camera size={20} color="#56636B" />
+                            <PressableScale onPress={pickImage} style={{ padding: 12, backgroundColor: '#ffffff', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', marginLeft: Platform.OS === 'web' ? 0 : 16 }}>
+                                <Camera size={20} color="#475569" />
                             </PressableScale>
                         </View>
                     </View>
